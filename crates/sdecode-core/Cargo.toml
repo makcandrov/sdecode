@@ -1,0 +1,18 @@
+[package]
+name = "sdecode-core"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+sdecode-preimages.workspace = true
+alloy-primitives = { workspace = true, features = ["serde", "rand"] }
+auto_impl.workspace = true
+serde = { workspace = true, features = ["derive"] }
+quick-impl.workspace = true
+thiserror.workspace = true
+overf = "0.1"

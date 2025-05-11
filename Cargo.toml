@@ -1,0 +1,64 @@
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+repository = "https://github.com/makcandrov/sdecode"
+homepage = "https://github.com/makcandrov/sdecode"
+documentation = "https://docs.rs/sdecode"
+description = "Decode EVM storage."
+license = "MIT OR Apache-2.0"
+keywords = ["evm", "storage", "decode", "layout"]
+
+[workspace]
+members = [
+    "bin/*",
+    "crates/*",
+]
+default-members = ["crates/sdecode"]
+
+resolver = "2"
+
+[workspace.dependencies]
+sdecode-cli = { path = "bin/cli" }
+
+sdecode = { path = "crates/sdecode" }
+sdecode-core = { path = "crates/sdecode-core" }
+sdecode-inspector = { path = "crates/sdecode-inspector" }
+sdecode-preimages = { path = "crates/sdecode-preimages" }
+sdecode-solidity = { path = "crates/sdecode-solidity" }
+sdecode-solidity-macro = { path = "crates/sdecode-solidity-macro" }
+sdecode-test-utils = { path = "crates/sdecode-test-utils" }
+
+alloy-primitives = "1"
+alloy-sol-types = "1"
+syn-solidity = "1"
+
+revm-bytecode = "4"
+revm-inspector = "4"
+revm-interpreter = "19"
+
+hashbrown = "0.15"
+indexmap = "2"
+array-init = "2"
+
+auto_impl = "1"
+overf = "0.1"
+quick-impl = "0.2"
+thiserror = "2"
+paste = "1"
+
+serde = "1"
+serde_json = "1"
+
+proc-macro2 = "1"
+quote = "1"
+syn = "2"
+
+clap = "4"
+dialoguer = "0.11"
+
+[profile.maxperf]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+incremental = false

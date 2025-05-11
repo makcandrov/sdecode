@@ -1,0 +1,22 @@
+[package]
+name = "sdecode"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Decode any EVM storage."
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+sdecode-preimages.workspace = true
+sdecode-core.workspace = true
+sdecode-solidity.workspace = true
+
+[dev-dependencies]
+sdecode-test-utils.workspace = true
+
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+alloy-primitives.workspace = true

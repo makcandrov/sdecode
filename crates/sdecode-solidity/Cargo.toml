@@ -1,0 +1,22 @@
+[package]
+name = "sdecode-solidity"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+sdecode-core.workspace = true
+sdecode-preimages.workspace = true
+sdecode-solidity-macro.workspace = true
+
+alloy-primitives = { workspace = true, features = ["serde", "rand"] }
+alloy-sol-types.workspace = true
+quick-impl.workspace = true
+overf.workspace = true
+thiserror.workspace = true
+array-init.workspace = true
+paste.workspace = true

@@ -1,0 +1,21 @@
+[package]
+name = "sdecode-inspector"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+sdecode-preimages.workspace = true
+
+alloy-primitives.workspace = true
+
+revm-inspector.workspace = true
+revm-interpreter.workspace = true
+revm-bytecode.workspace = true
+
+hashbrown.workspace = true
+overf.workspace = true
