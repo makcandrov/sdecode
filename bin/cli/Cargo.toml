@@ -5,13 +5,9 @@ edition.workspace = true
 repository.workspace = true
 homepage.workspace = true
 documentation.workspace = true
-description = "Decode EVM storage."
+description = "Decode any EVM storage."
 license.workspace = true
 keywords.workspace = true
 
 [dependencies]
 sdecode.workspace = true
-clap = { workspace = true, features = ["derive"] }
-dialoguer.workspace = true
-serde_json.workspace = true
-alloy-primitives.workspace = true

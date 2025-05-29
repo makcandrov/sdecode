@@ -39,7 +39,7 @@ fn decode_weth_storage<P: PreimagesProvider>(
 
 Runnable examples for some major Ethereum contracts can be found in [the examples folder](./crates/sdecode/examples/).
 
-The `sol_storage!` macro takes a Solidity contract as input and generates its storage structure. It also implements the `StorageDecode` trait, which provides the decoding method `sdecode`.
+The `sol_storage!` macro takes a Solidity contract as input and generates its storage structure. It implements the `StorageDecode` trait, which provides the decoding method `sdecode`.
 
 To accurately decode storage, two elements are necessary:
 - All the storage entries of the contract, as a mapping of slot to value.
@@ -54,8 +54,6 @@ Currently, there is no official API in major Ethereum nodes to query the full st
 Since mappings and other dynamically sized data structures store their values at the Keccak256 hash of their slot concatenated with some key, reversing this process is impossible if the preimage is unknown. This is why a preimages database implementing the `PreimagesProvider` trait is required. The database can be built by tracing each transaction that interacts with the contract using the inspector provided in [`sdecode-inspector`](./crates/sdecode-inspector/).
 
 ## Vyper support
-
-There is no major difference between the Vyper and Solidity storage layouts, except for how mappings are hashed: in Vyper, the slot comes before the key when computing the Keccak256 hash used to determine a value's location in storage. Solidity does the opposite (key first, then slot).
 
 This crate does not support directly embedding Vyper code in the `sol_storage!` macro. That's because `sol_storage!` relies on [`syn-solidity`] to parse Solidity syntax, and no equivalent parser exists for Vyper at the moment. However, you can manually translate a Vyper contract into Solidity syntax, then annotate it with `#[sdecode(language = "vyper")]`. Be careful with Vyper-specific behavior. For example, the `@nonreentrant` decorator inserts a hidden storage slot at the beginning of the layout.
 
