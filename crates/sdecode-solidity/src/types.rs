@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 
 use alloy_sol_types::SolType;
 pub use alloy_sol_types::sol_data::{
-    Address, Bool, ByteCount, Bytes, FixedArray, FixedBytes, Function, Int, IntBitCount, String,
-    SupportedFixedBytes, SupportedInt, Uint,
+    Address, Array, Bool, ByteCount, Bytes, FixedArray, FixedBytes, Function, Int, IntBitCount,
+    String, SupportedFixedBytes, SupportedInt, Uint,
 };
 
 pub trait SolStorageType {
@@ -11,11 +11,6 @@ pub trait SolStorageType {
 }
 pub trait SolMappingKeyType: SolStorageType {}
 
-/// Necessary while [Array](alloy_sol_types::sol_data::Array) requires a bound on `T`.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Array<T>(PhantomData<T>);
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Mapping<K, V>(PhantomData<(K, V)>);
 
 impl SolStorageType for Bool {
