@@ -50,7 +50,13 @@ where
             return;
         };
 
-        if !interp.control.instruction_result().is_continue() {
+        if !interp
+            .bytecode
+            .action()
+            .as_ref()
+            .and_then(|action| action.instruction_result())
+            .is_some_and(|instruction_result| instruction_result.is_ok())
+        {
             return;
         }
 

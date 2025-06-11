@@ -9,11 +9,13 @@ pub type Preimage = Bytes;
 const KECCAK_EMPTY: B256 =
     b256!("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl(impl Into, pub into_parts)]
 pub struct PreimageEntry {
     #[quick_impl(pub get_clone = "{}")]
     image: Image,
+
     #[quick_impl(pub get = "{}", pub into)]
     preimage: Preimage,
 }

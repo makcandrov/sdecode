@@ -9,10 +9,11 @@ use quick_impl::quick_impl;
 use crate::{Image, Preimage, PreimageEntry, PreimagesProvider};
 
 /// Preimages database in memory only.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl(impl From, impl Into)]
 pub struct MemoryPreimagesProvider {
-    #[serde(flatten)]
+    #[cfg_attr(feature = "serde", serde(flatten))]
     preimages: BTreeMap<Image, Preimage>,
 }
 

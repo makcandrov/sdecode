@@ -53,7 +53,7 @@ pub trait PreimagesProviderMut {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[quick_impl]
 pub struct WrapPreimagesProvider<P>(#[quick_impl(impl From, impl Deref, impl DerefMut)] pub P);
 

@@ -34,8 +34,8 @@ alloy-sol-types = "1"
 syn-solidity = "1"
 
 revm-bytecode = "4"
-revm-inspector = "5"
-revm-interpreter = "20"
+revm-inspector = "6"
+revm-interpreter = "21"
 
 hashbrown = "0.15"
 indexmap = "2"
