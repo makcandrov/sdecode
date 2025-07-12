@@ -235,5 +235,5 @@ fn main() {
 
     assert_eq!(expected_result, decoded);
 
-    println!("decoded contract in {:?}", elapsed);
+    println!("decoded contract in {elapsed:?}");
 }

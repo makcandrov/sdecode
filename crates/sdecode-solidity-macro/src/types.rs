@@ -129,10 +129,10 @@ pub fn get_default_rust_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStre
             let size = size.map_or(256, NonZero::get);
             assert!(size <= 256 && size % 8 == 0);
             if is_primitive_int(size) {
-                let ident = Ident::new(&format!("i{}", size), *span);
+                let ident = Ident::new(&format!("i{size}"), *span);
                 quote_spanned! {*span=> #ident }
             } else {
-                let ident = Ident::new(&format!("I{}", size), *span);
+                let ident = Ident::new(&format!("I{size}"), *span);
                 quote_spanned! {*span=> #alloy_primitives ::aliases:: #ident }
             }
         }
@@ -140,10 +140,10 @@ pub fn get_default_rust_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStre
             let size = size.map_or(256, NonZero::get);
             assert!(size <= 256 && size % 8 == 0);
             if is_primitive_int(size) {
-                let ident = Ident::new(&format!("u{}", size), *span);
+                let ident = Ident::new(&format!("u{size}"), *span);
                 quote_spanned! {*span=> #ident }
             } else {
-                let ident = Ident::new(&format!("U{}", size), *span);
+                let ident = Ident::new(&format!("U{size}"), *span);
                 quote_spanned! {*span=> #alloy_primitives ::aliases:: #ident }
             }
         }

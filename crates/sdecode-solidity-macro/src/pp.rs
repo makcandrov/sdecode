@@ -59,8 +59,7 @@ impl<'a> PPFile<'a> {
                     contract_indexes.get(parent_name).copied()
                 else {
                     let msg = format!(
-                        "Could not find inherited contract. If this contract doesn't have any storage variable, you can either remove this inheritance, or add a blank interface at the root of the file: `interface {} {{}}`",
-                        parent_name,
+                        "Could not find inherited contract. If this contract doesn't have any storage variable, you can either remove this inheritance, or add a blank interface at the root of the file: `interface {parent_name} {{}}`",
                     );
                     return Err(syn::Error::new(parent_name.span(), msg));
                 };
