@@ -1,7 +1,7 @@
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 repository = "https://github.com/makcandrov/sdecode"
 homepage = "https://github.com/makcandrov/sdecode"
 description = "Decode EVM storage."
@@ -33,7 +33,7 @@ alloy-sol-types = "1"
 syn-solidity = "1"
 
 revm-bytecode = "6"
-revm-inspector = "9"
+revm-inspector = "10"
 revm-interpreter = "25"
 
 hashbrown = "0.15"

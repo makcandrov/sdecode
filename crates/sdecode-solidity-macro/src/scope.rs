@@ -72,10 +72,10 @@ impl<'a> Scope<'a> {
         &self,
         ident: &Ident,
     ) -> Option<Scoped<'a, &'a UserDefinedItem<'a>>> {
-        if let Some(contract) = &self.contract {
-            if let Some(udi) = contract.udis.get(ident) {
-                return Some(self.in_contract_scopped(udi, contract));
-            }
+        if let Some(contract) = &self.contract
+            && let Some(udi) = contract.udis.get(ident)
+        {
+            return Some(self.in_contract_scopped(udi, contract));
         }
         self.file
             .udis
@@ -90,13 +90,13 @@ impl<'a> Scope<'a> {
         let mut path_iter = path.iter();
         let first = path_iter.next().expect("path must not be empty");
 
-        if let Some(contract) = &self.contract {
-            if let Some(udi) = contract.udis.get(&first.0) {
-                if let Some(next) = path_iter.next() {
-                    return Err(next);
-                } else {
-                    return Ok(self.in_contract_scopped(udi, contract));
-                }
+        if let Some(contract) = &self.contract
+            && let Some(udi) = contract.udis.get(&first.0)
+        {
+            if let Some(next) = path_iter.next() {
+                return Err(next);
+            } else {
+                return Ok(self.in_contract_scopped(udi, contract));
             }
         }
 

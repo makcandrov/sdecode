@@ -105,15 +105,14 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for StoragePreimagesCache<P> 
             .as_ref()
             .map_or(U256::ZERO, PreimageEntry::image_u256);
 
-        if let Some(provider_entry) = &provider_entry {
-            if cache_entry
+        if let Some(provider_entry) = &provider_entry
+            && cache_entry
                 .as_ref()
                 .is_none_or(|entry| entry.image_u256() != provider_key)
-            {
-                // If this entry isn't already cached, we insert it.
-                self.lower_cache
-                    .insert(provider_key, Some(provider_entry.clone()));
-            }
+        {
+            // If this entry isn't already cached, we insert it.
+            self.lower_cache
+                .insert(provider_key, Some(provider_entry.clone()));
         }
 
         let delta_to_provider = checked! { image_u256 - provider_key};
