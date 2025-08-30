@@ -36,7 +36,7 @@ revm-bytecode = "6"
 revm-inspector = "10"
 revm-interpreter = "25"
 
-hashbrown = "0.15"
+hashbrown = "0.16"
 indexmap = "2"
 array-init = "2"
 
