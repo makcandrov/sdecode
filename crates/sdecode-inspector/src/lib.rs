@@ -3,8 +3,9 @@
 use std::{collections::BTreeSet, mem::replace, ops::Deref};
 
 use alloy_primitives::{Address, B256, Bytes, U256};
-use hashbrown::HashMap;
+use hashbrown::{HashMap, hash_map::Entry};
 use overf::checked;
+use quick_impl::{quick_impl, quick_impl_all};
 use revm_bytecode::opcode::KECCAK256;
 use revm_inspector::Inspector;
 use revm_interpreter::{
@@ -15,10 +16,49 @@ use sdecode_preimages::{Image, MemoryPreimagesProvider, Preimage};
 
 /// Preimages inspector.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[quick_impl]
 pub struct PreimagesInspector {
     unconfirmed: Option<(U256, U256)>,
     preimages: HashMap<Image, Preimage>,
-    targets: BTreeSet<Address>,
+    #[quick_impl(pub get = "{}", pub get_mut = "{}_mut", pub with, pub set)]
+    targets: InspectorTargets,
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[quick_impl_all(pub const is)]
+pub enum InspectorTargets {
+    #[default]
+    All,
+    #[quick_impl(pub as_ref, pub as_ref_mut, pub into, pub try_into)]
+    Exclude(BTreeSet<Address>),
+    #[quick_impl(pub as_ref, pub as_ref_mut, pub into, pub try_into)]
+    IncludeOnly(BTreeSet<Address>),
+}
+
+impl InspectorTargets {
+    pub fn should_inspect(&self, target: &Address) -> bool {
+        match self {
+            Self::All => true,
+            Self::Exclude(targets) => !targets.contains(target),
+            Self::IncludeOnly(targets) => targets.contains(target),
+        }
+    }
+
+    pub fn should_not_inspect(&self, target: &Address) -> bool {
+        match self {
+            Self::All => false,
+            Self::Exclude(targets) => targets.contains(target),
+            Self::IncludeOnly(targets) => !targets.contains(target),
+        }
+    }
+
+    pub fn exclude(targets: impl IntoIterator<Item = Address>) -> Self {
+        Self::Exclude(targets.into_iter().collect())
+    }
+
+    pub fn include_only(targets: impl IntoIterator<Item = Address>) -> Self {
+        Self::IncludeOnly(targets.into_iter().collect())
+    }
 }
 
 impl<CTX, INTR> Inspector<CTX, INTR> for PreimagesInspector
@@ -32,7 +72,10 @@ where
             return;
         }
 
-        if !self.targets.is_empty() && !self.targets.contains(&interp.input.target_address()) {
+        if self
+            .targets
+            .should_not_inspect(&interp.input.target_address())
+        {
             self.unconfirmed = None;
             return;
         }
@@ -50,10 +93,10 @@ where
             return;
         };
 
-        if !interp
+        if interp
             .bytecode
             .instruction_result()
-            .is_some_and(|instruction_result| instruction_result.is_ok())
+            .is_none_or(|instruction_result| !instruction_result.is_ok())
         {
             return;
         }
@@ -61,7 +104,7 @@ where
         let stack = &interp.stack;
         let image = B256::from(stack.peek(0).unwrap());
 
-        if let hashbrown::hash_map::Entry::Vacant(e) = self.preimages.entry(image) {
+        if let Entry::Vacant(e) = self.preimages.entry(image) {
             let start = offset.to::<usize>();
             let end = checked! { start + size.to::<usize>() };
             let preimage_slice = interp.memory.slice(start..end);
@@ -74,37 +117,23 @@ where
 impl PreimagesInspector {
     /// Creates an empty [`PreimagesInspector`].
     pub fn new() -> Self {
+        Self::new_with_target(InspectorTargets::All)
+    }
+
+    pub fn new_with_target(targets: InspectorTargets) -> Self {
         Self {
             unconfirmed: None,
             preimages: HashMap::new(),
-            targets: BTreeSet::new(),
+            targets,
         }
     }
 
-    pub fn new_with_target(target: Address) -> Self {
-        Self::new().with_target(target)
+    pub fn new_excluding(targets: impl IntoIterator<Item = Address>) -> Self {
+        Self::new_with_target(InspectorTargets::exclude(targets))
     }
 
-    pub fn new_with_targets(targets: impl IntoIterator<Item = Address>) -> Self {
-        Self::new().with_targets(targets)
-    }
-
-    pub fn with_target(mut self, target: Address) -> Self {
-        self.add_target(target);
-        self
-    }
-
-    pub fn with_targets(mut self, targets: impl IntoIterator<Item = Address>) -> Self {
-        self.add_targets(targets);
-        self
-    }
-
-    pub fn add_target(&mut self, target: Address) {
-        self.targets.insert(target);
-    }
-
-    pub fn add_targets(&mut self, targets: impl IntoIterator<Item = Address>) {
-        self.targets.extend(targets);
+    pub fn new_including_only(targets: impl IntoIterator<Item = Address>) -> Self {
+        Self::new_with_target(InspectorTargets::include_only(targets))
     }
 
     /// Preimages reference.

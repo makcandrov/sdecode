@@ -19,3 +19,4 @@ revm-bytecode.workspace = true
 
 hashbrown.workspace = true
 overf.workspace = true
+quick-impl.workspace = true
