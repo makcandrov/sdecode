@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
-use std::{collections::BTreeSet, mem::replace, ops::Deref};
+use std::{collections::BTreeSet, mem::replace};
 
 use alloy_primitives::{Address, B256, Bytes, U256};
 use hashbrown::{HashMap, hash_map::Entry};
@@ -96,7 +96,7 @@ where
         if interp
             .bytecode
             .instruction_result()
-            .is_none_or(|instruction_result| !instruction_result.is_ok())
+            .is_some_and(|instruction_result| !instruction_result.is_ok())
         {
             return;
         }
@@ -105,10 +105,15 @@ where
         let image = B256::from(stack.peek(0).unwrap());
 
         if let Entry::Vacant(e) = self.preimages.entry(image) {
-            let start = offset.to::<usize>();
-            let end = checked! { start + size.to::<usize>() };
-            let preimage_slice = interp.memory.slice(start..end);
-            let preimage = Bytes::copy_from_slice(preimage_slice.deref());
+            let preimage = if size.is_zero() {
+                Bytes::new()
+            } else {
+                let start = offset.to::<usize>();
+                let end = checked! { start + size.to::<usize>() };
+                let preimage_slice = interp.memory.slice(start..end);
+                Bytes::copy_from_slice(preimage_slice.as_ref())
+            };
+
             e.insert(preimage);
         }
     }
