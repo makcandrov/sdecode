@@ -8,15 +8,26 @@ documentation = "https://docs.rs/sdecode-solidity"
 license.workspace = true
 keywords.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 sdecode-core.workspace = true
 sdecode-preimages.workspace = true
 sdecode-solidity-macro.workspace = true
 
-alloy-primitives = { workspace = true, features = ["serde", "rand"] }
+alloy-primitives.workspace = true
 alloy-sol-types.workspace = true
+
 quick-impl.workspace = true
 overf.workspace = true
 thiserror.workspace = true
 array-init.workspace = true
 paste.workspace = true
+
+hashbrown = { workspace = true, optional = true }
+indexmap = { workspace = true, optional = true }
+
+[features]
+hashbrown = ["dep:hashbrown"]
+indexmap = ["dep:indexmap"]

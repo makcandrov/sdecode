@@ -1,16 +1,14 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
-mod types;
-pub use types::{SolMappingKeyType, SolStorageType};
-
-pub mod data_types {
-    use super::*;
-
-    pub use types::{
+pub mod sol_types {
+    pub use super::types::{
         Address, Array, Bool, ByteCount, Bytes, FixedArray, FixedBytes, Function, Int, IntBitCount,
         Mapping, String, SupportedFixedBytes, SupportedInt, Uint,
     };
 }
+
+mod types;
+pub use types::{SolMappingKeyType, SolStorageType};
 
 mod values;
 pub use values::{SolLayoutError, SolMappingKeyValue, SolStorageValue, SolWordType, helpers};

@@ -1,11 +1,11 @@
+use std::collections::HashSet;
+use std::hash::{BuildHasher, Hash};
 use std::marker::PhantomData;
 
 use alloy_primitives::{B256, Bytes};
 use sdecode_core::{IntoStorageReader, StorageReader, StorageReaderNext};
 
-use crate::{SolStorageType, data_types, utils::b256_to_u256};
-
-use super::{SolLayoutError, SolStorageValue};
+use crate::{SolLayoutError, SolStorageType, SolStorageValue, sol_types, utils::b256_to_u256};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SolDynamicArrayHelper<A, T>(pub A, PhantomData<T>);
@@ -16,7 +16,7 @@ impl<A, T> SolDynamicArrayHelper<A, T> {
     }
 }
 
-impl<A, T, SolT> SolStorageValue<data_types::Array<SolT>> for SolDynamicArrayHelper<A, T>
+impl<A, T, SolT> SolStorageValue<sol_types::Array<SolT>> for SolDynamicArrayHelper<A, T>
 where
     A: FromIterator<T>,
     T: SolStorageValue<SolT>,
@@ -53,7 +53,7 @@ where
     }
 }
 
-impl<T, SolT> SolStorageValue<data_types::Array<SolT>> for Vec<T>
+impl<T, SolT> SolStorageValue<sol_types::Array<SolT>> for Vec<T>
 where
     T: SolStorageValue<SolT>,
     SolT: SolStorageType,
@@ -65,3 +65,55 @@ where
         SolDynamicArrayHelper::decode_storage(storage_reader).map(|x| x.0)
     }
 }
+
+impl<T, SolT, S> SolStorageValue<sol_types::Array<SolT>> for HashSet<T, S>
+where
+    S: BuildHasher + Default,
+    SolT: SolStorageType,
+    T: Eq + Hash + SolStorageValue<SolT>,
+{
+    fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
+    where
+        Reader: StorageReader,
+    {
+        SolDynamicArrayHelper::<Self, T>::decode_storage(storage_reader).map(|x| x.0)
+    }
+}
+
+#[cfg(feature = "hashbrown")]
+const _: () = {
+    use hashbrown::HashSet;
+
+    impl<T, SolT, S> SolStorageValue<sol_types::Array<SolT>> for HashSet<T, S>
+    where
+        S: BuildHasher + Default,
+        SolT: SolStorageType,
+        T: Eq + Hash + SolStorageValue<SolT>,
+    {
+        fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
+        where
+            Reader: StorageReader,
+        {
+            SolDynamicArrayHelper::<Self, T>::decode_storage(storage_reader).map(|x| x.0)
+        }
+    }
+};
+
+#[cfg(feature = "indexmap")]
+const _: () = {
+    use indexmap::IndexSet;
+
+    impl<T, SolT, S> SolStorageValue<sol_types::Array<SolT>> for IndexSet<T, S>
+    where
+        S: BuildHasher + Default,
+        SolT: SolStorageType,
+        T: Eq + Hash + SolStorageValue<SolT>,
+    {
+        fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
+        where
+            Reader: StorageReader,
+        {
+            SolDynamicArrayHelper::<Self, T>::decode_storage(storage_reader).map(|x| x.0)
+        }
+    }
+};

@@ -1,10 +1,12 @@
-use std::marker::PhantomData;
+use std::{
+    collections::HashSet,
+    hash::{BuildHasher, Hash},
+    marker::PhantomData,
+};
 
 use sdecode_core::StorageReader;
 
-use crate::{SolStorageType, data_types};
-
-use super::{SolLayoutError, SolStorageValue};
+use crate::{SolLayoutError, SolStorageType, SolStorageValue, sol_types};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SolFixedArrayHelper<const N: usize, A, T>(pub A, PhantomData<T>);
@@ -15,7 +17,7 @@ impl<const N: usize, A, T> SolFixedArrayHelper<N, A, T> {
     }
 }
 
-impl<const N: usize, T, SolT> SolStorageValue<data_types::FixedArray<SolT, N>> for [T; N]
+impl<const N: usize, T, SolT> SolStorageValue<sol_types::FixedArray<SolT, N>> for [T; N]
 where
     SolT: SolStorageType,
     T: SolStorageValue<SolT>,
@@ -35,7 +37,7 @@ where
     }
 }
 
-impl<const N: usize, A, T, SolT> SolStorageValue<data_types::FixedArray<SolT, N>>
+impl<const N: usize, A, T, SolT> SolStorageValue<sol_types::FixedArray<SolT, N>>
     for SolFixedArrayHelper<N, A, T>
 where
     A: FromIterator<T>,
@@ -59,7 +61,7 @@ where
     }
 }
 
-impl<const N: usize, T, SolT> SolStorageValue<data_types::FixedArray<SolT, N>> for Vec<T>
+impl<const N: usize, T, SolT> SolStorageValue<sol_types::FixedArray<SolT, N>> for Vec<T>
 where
     SolT: SolStorageType,
     T: SolStorageValue<SolT>,
@@ -71,6 +73,58 @@ where
         SolFixedArrayHelper::<N, Self, T>::decode_storage(storage_reader).map(|x| x.0)
     }
 }
+
+impl<const N: usize, T, SolT, S> SolStorageValue<sol_types::FixedArray<SolT, N>> for HashSet<T, S>
+where
+    S: BuildHasher + Default,
+    SolT: SolStorageType,
+    T: Eq + Hash + SolStorageValue<SolT>,
+{
+    fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
+    where
+        Reader: StorageReader,
+    {
+        SolFixedArrayHelper::<N, Self, T>::decode_storage(storage_reader).map(|x| x.0)
+    }
+}
+
+#[cfg(feature = "hashbrown")]
+const _: () = {
+    use hashbrown::HashSet;
+
+    impl<const N: usize, T, SolT, S> SolStorageValue<sol_types::FixedArray<SolT, N>> for HashSet<T, S>
+    where
+        S: BuildHasher + Default,
+        SolT: SolStorageType,
+        T: Eq + Hash + SolStorageValue<SolT>,
+    {
+        fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
+        where
+            Reader: StorageReader,
+        {
+            SolFixedArrayHelper::<N, Self, T>::decode_storage(storage_reader).map(|x| x.0)
+        }
+    }
+};
+
+#[cfg(feature = "indexmap")]
+const _: () = {
+    use indexmap::IndexSet;
+
+    impl<const N: usize, T, SolT, S> SolStorageValue<sol_types::FixedArray<SolT, N>> for IndexSet<T, S>
+    where
+        S: BuildHasher + Default,
+        SolT: SolStorageType,
+        T: Eq + Hash + SolStorageValue<SolT>,
+    {
+        fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
+        where
+            Reader: StorageReader,
+        {
+            SolFixedArrayHelper::<N, Self, T>::decode_storage(storage_reader).map(|x| x.0)
+        }
+    }
+};
 
 #[cfg(test)]
 mod tests {

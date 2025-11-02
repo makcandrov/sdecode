@@ -9,8 +9,11 @@ description = "Keccak256 preimages."
 license.workspace = true
 keywords.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
-alloy-primitives = { workspace = true, features = ["getrandom"] }
+alloy-primitives.workspace = true
 
 serde = { workspace = true, features = ["derive"], optional = true }
 hashbrown.workspace = true
@@ -18,6 +21,9 @@ hashbrown.workspace = true
 auto_impl.workspace = true
 quick-impl.workspace = true
 overf.workspace = true
+
+[dev-dependencies]
+alloy-primitives = { workspace = true, features = ["getrandom"] }
 
 [features]
 serde = ["dep:serde", "alloy-primitives/serde"]

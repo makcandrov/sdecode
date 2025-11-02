@@ -13,7 +13,7 @@ use syn_solidity::{
 use crate::{
     attribute::{ContractAttrs, GlobalAttrs, StorageVariableAttrs, StructureAttrs, UdtAttrs},
     linearize::c3_linearize,
-    utils::to_snake_case,
+    utils::to_mod_name,
 };
 
 #[derive(Debug, Clone)]
@@ -161,9 +161,9 @@ impl<'a> PPFile<'a> {
         }
     }
 
-    pub fn sdecode_solidity_data_types(&self) -> TokenStream {
+    pub fn sdecode_solidity_sol_types(&self) -> TokenStream {
         let sdecode_solidity = &self.sdecode_solidity();
-        quote! { #sdecode_solidity :: data_types }
+        quote! { #sdecode_solidity :: sol_types }
     }
 
     pub fn sdecode_core(&self) -> TokenStream {
@@ -286,7 +286,7 @@ impl<'a> PPContract<'a> {
         } else {
             &self.raw.name.0
         };
-        let snakecase = to_snake_case(&ident.to_string());
+        let snakecase = to_mod_name(&ident.to_string());
         Ident::new(&snakecase, Span::call_site())
     }
 }

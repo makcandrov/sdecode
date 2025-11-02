@@ -3,9 +3,7 @@ use std::marker::PhantomData;
 use quick_impl::quick_impl;
 use sdecode_core::StorageReader;
 
-use crate::{SolStorageType, data_types};
-
-use super::{SolLayoutError, SolStorageValue};
+use crate::{SolLayoutError, SolStorageType, SolStorageValue, sol_types};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[quick_impl]
@@ -29,7 +27,7 @@ where
     where
         Reader: StorageReader,
     {
-        let discr = <u8 as SolStorageValue<data_types::Uint<8>>>::decode_storage(storage_reader)?;
+        let discr = <u8 as SolStorageValue<sol_types::Uint<8>>>::decode_storage(storage_reader)?;
         let res = E::try_from(discr).map_err(|_| SolLayoutError::Err)?;
         Ok(Self::new(res))
     }

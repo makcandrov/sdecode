@@ -1,9 +1,9 @@
-use super::{SolLayoutError, SolStorageValue};
-use crate::SolStorageType;
 use paste::paste;
 use quick_impl::quick_impl;
 use sdecode_core::StorageReader;
 use std::{hash::Hash, marker::PhantomData};
+
+use crate::{SolLayoutError, SolStorageType, SolStorageValue};
 
 /// Solidity doesn't have tuples, so it wouldn't be correct to implement `SolStorageTypeValue` on
 /// tuples. Instead, it is implemented on a wrapper.

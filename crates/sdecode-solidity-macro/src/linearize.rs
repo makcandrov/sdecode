@@ -67,7 +67,7 @@ fn merge<T: PartialEq + Clone>(mut input: Vec<Vec<T>>, capacity: usize) -> Optio
     input.retain(|inner| !inner.is_empty());
 
     while !input.is_empty() {
-        let head = find_good_head(&input)?;
+        let head = find_good_head(&input).expect("input is not empty");
 
         input.retain_mut(|inner| {
             inner.retain(|item| *item != head);
@@ -218,5 +218,11 @@ mod tests {
             ],
             "Z"
         );
+    }
+
+    #[test]
+    fn test_c3_linearize_cycle() {
+        let lin = c3_linearize(&[vec![1], vec![0]]);
+        assert!(lin.is_err());
     }
 }

@@ -179,14 +179,19 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for StoragePreimagesCache<P> 
 
 #[cfg(test)]
 mod tests {
-    use crate::{MemoryPreimagesProvider, misc::CounterPreimagesProviderMut};
+    use crate::{MemoryPreimagesProvider, Preimage, misc::CounterPreimagesProviderMut};
 
     use super::*;
 
     #[test]
     fn test_storage_preimages_cache() {
         let max_delta = U256::from(0xffffffffffffusize);
-        let db = MemoryPreimagesProvider::random_filled(10);
+        let mut db = MemoryPreimagesProvider::new();
+
+        for _ in 0..10 {
+            db.insert(Preimage::copy_from_slice(&Image::random().0));
+        }
+
         let db_counter = CounterPreimagesProviderMut::new(&db);
         let mut cache = StoragePreimagesCache::new_mut(db_counter, max_delta);
 
@@ -200,8 +205,6 @@ mod tests {
         }
 
         let accessses = cache.inner_provider().accesses();
-
-        // dbg!(cache);
 
         println!("{N} cache queries\n{accessses} db accesses");
     }

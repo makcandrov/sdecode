@@ -7,38 +7,38 @@ use syn::Ident;
 use syn_solidity::{Spanned, Type};
 
 pub fn get_sol_storage_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStream> {
-    let data_types = sc.file.sdecode_solidity_data_types();
+    let sol_types = sc.file.sdecode_solidity_sol_types();
 
     let result = match ty {
-        Type::Address(span, _payable) => quote_spanned! {*span=> #data_types :: Address },
-        Type::Bool(span) => quote_spanned! {*span=> #data_types :: Bool },
-        Type::String(span) => quote_spanned! {*span=> #data_types :: String },
-        Type::Bytes(span) => quote_spanned! {*span=> #data_types :: Bytes },
+        Type::Address(span, _payable) => quote_spanned! {*span=> #sol_types :: Address },
+        Type::Bool(span) => quote_spanned! {*span=> #sol_types :: Bool },
+        Type::String(span) => quote_spanned! {*span=> #sol_types :: String },
+        Type::Bytes(span) => quote_spanned! {*span=> #sol_types :: Bytes },
         Type::FixedBytes(span, size) => {
             assert!(size.get() <= 32);
             let size = Literal::u16_unsuffixed(size.get());
-            quote_spanned! {*span=> #data_types :: FixedBytes<#size> }
+            quote_spanned! {*span=> #sol_types :: FixedBytes<#size> }
         }
         Type::Int(span, size) => {
             let size = size.map_or(256, NonZero::get);
             assert!(size <= 256 && size % 8 == 0);
             let size = Literal::u16_unsuffixed(size);
-            quote_spanned! {*span=> #data_types :: Int<#size> }
+            quote_spanned! {*span=> #sol_types :: Int<#size> }
         }
         Type::Uint(span, size) => {
             let size = size.map_or(256, NonZero::get);
             assert!(size <= 256 && size % 8 == 0);
             let size = Literal::u16_unsuffixed(size);
-            quote_spanned! {*span=> #data_types :: Uint<#size> }
+            quote_spanned! {*span=> #sol_types :: Uint<#size> }
         }
         Type::Array(array) => {
             let elem_ty = get_sol_storage_type(sc, &array.ty)?;
             if let Some(size) = &array.size {
                 let size = ArraySizeEvaluator::new().eval(sc, size)?;
                 let size = Literal::usize_unsuffixed(size);
-                quote_spanned! {array.span()=> #data_types :: FixedArray<#elem_ty, #size> }
+                quote_spanned! {array.span()=> #sol_types :: FixedArray<#elem_ty, #size> }
             } else {
-                quote_spanned! {array.span()=> #data_types :: Array<#elem_ty> }
+                quote_spanned! {array.span()=> #sol_types :: Array<#elem_ty> }
             }
         }
         Type::Tuple(tuple) => {
@@ -47,11 +47,11 @@ pub fn get_sol_storage_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStrea
                 "tuples are not supported as storage types",
             ));
         }
-        Type::Function(function) => quote_spanned! {function.span()=> #data_types :: Function },
+        Type::Function(function) => quote_spanned! {function.span()=> #sol_types :: Function },
         Type::Mapping(mapping) => {
             let key_ty = get_sol_storage_type(sc, &mapping.key)?;
             let value_ty = get_sol_storage_type(sc, &mapping.value)?;
-            quote_spanned! {mapping.span()=> #data_types :: Mapping<#key_ty, #value_ty> }
+            quote_spanned! {mapping.span()=> #sol_types :: Mapping<#key_ty, #value_ty> }
         }
         Type::Custom(path) => match sc.user_defined_item_path(path) {
             Ok(item) => {
@@ -63,7 +63,7 @@ pub fn get_sol_storage_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStrea
                 };
                 match &item.inner {
                     UserDefinedItem::Contract(_) => {
-                        quote_spanned! {path.span()=> #data_types :: Address }
+                        quote_spanned! {path.span()=> #sol_types :: Address }
                     }
                     UserDefinedItem::Struct(structure) => {
                         let ty = structure.rust_path();

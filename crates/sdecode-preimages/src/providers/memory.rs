@@ -32,15 +32,6 @@ impl MemoryPreimagesProvider {
         self.preimages.is_empty()
     }
 
-    /// New structure filled with `n` random preimages.
-    pub fn random_filled(n: usize) -> Self {
-        let mut res = Self::default();
-        for _ in 0..n {
-            res.insert(Preimage::copy_from_slice(&Image::random().0));
-        }
-        res
-    }
-
     /// Insert a preimage.
     pub fn insert(&mut self, preimage: Preimage) -> Image {
         let image = keccak256(&preimage);

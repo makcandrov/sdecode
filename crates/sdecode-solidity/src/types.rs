@@ -11,6 +11,7 @@ pub trait SolStorageType {
 }
 pub trait SolMappingKeyType: SolStorageType {}
 
+/// Mapping - `mapping (K => V)`
 pub struct Mapping<K, V>(PhantomData<(K, V)>);
 
 impl SolStorageType for Bool {

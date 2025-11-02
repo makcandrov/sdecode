@@ -1,9 +1,3 @@
-use crate::{
-    data_types,
-    utils::{b256_to_u256, slice_is_zero},
-};
-
-use super::{SolLayoutError, SolStorageValue};
 use alloy_primitives::{
     B256, Bytes,
     bytes::{self, BufMut, BytesMut},
@@ -12,7 +6,12 @@ use alloy_primitives::{
 use overf::checked;
 use sdecode_core::{IntoStorageReader, StorageReader, StorageReaderNext};
 
-impl SolStorageValue<data_types::Bytes> for bytes::Bytes {
+use crate::{
+    SolLayoutError, SolStorageValue, sol_types,
+    utils::{b256_to_u256, slice_is_zero},
+};
+
+impl SolStorageValue<sol_types::Bytes> for bytes::Bytes {
     /// # [`bytes` and `string`](https://docs.soliditylang.org/en/latest/internals/layout_in_storage.html#bytes-and-string)
     ///
     /// ``bytes`` and ``string`` are encoded identically.
@@ -126,7 +125,7 @@ impl SolStorageValue<data_types::Bytes> for bytes::Bytes {
     }
 }
 
-impl SolStorageValue<data_types::Bytes> for Bytes {
+impl SolStorageValue<sol_types::Bytes> for Bytes {
     fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
     where
         Reader: StorageReader,
@@ -136,7 +135,7 @@ impl SolStorageValue<data_types::Bytes> for Bytes {
     }
 }
 
-impl SolStorageValue<data_types::Bytes> for Vec<u8> {
+impl SolStorageValue<sol_types::Bytes> for Vec<u8> {
     fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
     where
         Reader: StorageReader,
@@ -146,7 +145,7 @@ impl SolStorageValue<data_types::Bytes> for Vec<u8> {
     }
 }
 
-impl SolStorageValue<data_types::String> for String {
+impl SolStorageValue<sol_types::String> for String {
     fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
     where
         Reader: StorageReader,

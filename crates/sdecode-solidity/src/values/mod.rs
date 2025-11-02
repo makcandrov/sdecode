@@ -20,13 +20,11 @@ mod word;
 pub use word::SolWordType;
 
 pub mod helpers {
-    use super::*;
-
-    pub use dynamic_array::SolDynamicArrayHelper;
-    pub use enumm::SolEnumHelper;
-    pub use fixed_array::SolFixedArrayHelper;
-    pub use mapping::{SolMappingHelper, SolSetHelper};
-    pub use structure::SolStructureHelper;
+    pub use super::dynamic_array::SolDynamicArrayHelper;
+    pub use super::enumm::SolEnumHelper;
+    pub use super::fixed_array::SolFixedArrayHelper;
+    pub use super::mapping::{SolMappingHelper, SolSetHelper};
+    pub use super::structure::SolStructureHelper;
 }
 
 pub trait SolStorageValue<T: SolStorageType>: Sized {
