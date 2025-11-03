@@ -201,7 +201,7 @@ fn expand_storage_decode_impl(
         fields_decode.extend(quote! {
             let #field_name = <
                 #field_ty
-                as ::sdecode_solidity ::SolStorageValue<#field_sol_ty>
+                as #sdecode_solidity ::SolStorageValue<#field_sol_ty>
             >::decode_storage(&mut storage_reader)
                 .map_err(#sdecode_core ::StorageError::Layout)?;
         });
