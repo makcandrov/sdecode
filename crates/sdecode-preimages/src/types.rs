@@ -10,7 +10,7 @@ pub type Preimage = Bytes;
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl(impl Into, pub into_parts)]
 pub struct PreimageEntry {
-    #[quick_impl(pub const get = "{}_ref", pub get_clone = "{}")]
+    #[quick_impl(pub const get = "{}_ref")]
     image: Image,
 
     #[quick_impl(pub const get = "{}", pub into)]
@@ -36,6 +36,10 @@ impl Ord for PreimageEntry {
 }
 
 impl PreimageEntry {
+    pub const fn image(&self) -> B256 {
+        self.image
+    }
+
     /// ```rust
     /// # use ::alloy_primitives::keccak256;
     /// # use ::sdecode_preimages::PreimageEntry;
@@ -64,6 +68,6 @@ impl PreimageEntry {
 
     #[inline(always)]
     pub const fn image_u256(&self) -> U256 {
-        b256_to_u256(*self.image_ref())
+        b256_to_u256(self.image())
     }
 }

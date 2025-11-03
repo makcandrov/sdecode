@@ -13,6 +13,7 @@ keywords.workspace = true
 sdecode-preimages.workspace = true
 sdecode-core.workspace = true
 sdecode-solidity.workspace = true
+sdecode-solidity-macro.workspace = true
 
 [dev-dependencies]
 sdecode-test-utils.workspace = true

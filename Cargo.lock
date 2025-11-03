@@ -2266,6 +2266,7 @@ dependencies = [
  "sdecode-core",
  "sdecode-preimages",
  "sdecode-solidity",
+ "sdecode-solidity-macro",
  "sdecode-test-utils",
  "serde",
  "serde_json",
