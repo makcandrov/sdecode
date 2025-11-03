@@ -5,13 +5,15 @@ use quick_impl::quick_impl;
 
 use crate::{HashChain, HashLink, IntoStorageReader, StorageReader, StorageReaderImpl};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct StorageNode {
     pub value: Option<B256>,
     pub children: StorageNodeChildren,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl]
 pub struct StorageStructure(#[quick_impl(impl Deref, impl From, impl Into)] pub Vec<StorageNode>);
 

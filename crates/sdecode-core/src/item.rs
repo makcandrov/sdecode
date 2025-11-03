@@ -5,24 +5,28 @@ use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesPr
 use crate::{DecodedStorageSlot, MappingKeySide};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct StorageItem {
     pub anchor: B256,
     pub kind: AnchorKind,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub enum AnchorKind {
     UnknownPreimage { link: HashLink },
     UndecodablePreimage { preimage: Bytes, chain: HashChain },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct HashChain {
     pub offset: usize,
     pub link: HashLink,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl_all(pub const is, pub const from = "{}")]
 pub enum HashLink {
     Leaf {

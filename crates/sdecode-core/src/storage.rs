@@ -9,7 +9,8 @@ use crate::{
     StorageStructure, reader::StorageReaderImpl, utils::b256_to_u256,
 };
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct Storage {
     pub anchors: BTreeMap<B256, StorageNode>,
     pub undecoded: BTreeMap<B256, (Bytes, StorageStructure)>,

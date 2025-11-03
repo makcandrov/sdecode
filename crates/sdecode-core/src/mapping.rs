@@ -2,6 +2,7 @@ use alloy_primitives::{B256, Bytes};
 use quick_impl::quick_impl_all;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl_all(pub const is, pub set)]
 pub enum MappingKeySide {
     /// `[key][slot]`
@@ -12,6 +13,7 @@ pub enum MappingKeySide {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct MappingEntryLocation {
     pub entry_key: Bytes,
     pub mapping_slot: B256,

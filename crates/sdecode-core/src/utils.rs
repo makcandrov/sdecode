@@ -1,8 +1,8 @@
 use alloy_primitives::{B256, U256};
 
 #[inline(always)]
-pub fn b256_to_u256(value: B256) -> U256 {
-    From::from(value)
+pub const fn b256_to_u256(value: B256) -> U256 {
+    U256::from_be_bytes(value.0)
 }
 
 #[inline(always)]

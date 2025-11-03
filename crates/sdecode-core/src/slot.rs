@@ -7,6 +7,7 @@ use crate::utils::b256_to_u256;
 pub const MAX_STORAGE_OFFSET: usize = 0xffffffffffff;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl(pub const new = "new_unchecked", pub into_parts = "split")]
 pub struct DecodedStorageSlot {
     #[quick_impl(pub get_clone = "{}")]
