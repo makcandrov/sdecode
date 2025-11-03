@@ -54,8 +54,8 @@ pub trait PreimagesProviderMut {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[quick_impl]
-pub struct WrapPreimagesProvider<P>(#[quick_impl(impl From, impl Deref, impl DerefMut)] pub P);
+#[quick_impl(impl From)]
+pub struct WrapPreimagesProvider<P>(pub P);
 
 impl<P> WrapPreimagesProvider<P> {
     pub const fn new(provider: P) -> Self {
@@ -81,10 +81,4 @@ impl<P: PreimagesProvider> PreimagesProviderMut for WrapPreimagesProvider<P> {
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         self.0.nearest_upper_preimage(image)
     }
-}
-
-fn _assert_dyn_compatible<E: Error>(
-    _: &dyn PreimagesProvider<Error = E>,
-    _: &dyn PreimagesProviderMut<Error = E>,
-) {
 }
