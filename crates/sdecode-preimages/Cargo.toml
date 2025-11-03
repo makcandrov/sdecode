@@ -27,4 +27,3 @@ alloy-primitives = { workspace = true, features = ["getrandom"] }
 
 [features]
 serde = ["dep:serde", "alloy-primitives/serde"]
-default = ["serde"]

@@ -9,6 +9,9 @@ description = "Decode any EVM storage."
 license.workspace = true
 keywords.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 sdecode-preimages.workspace = true
 sdecode-core.workspace = true
@@ -21,3 +24,9 @@ sdecode-test-utils.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 alloy-primitives.workspace = true
+
+[features]
+serde = [
+    "sdecode-preimages/serde",
+    "sdecode-core/serde"
+]
