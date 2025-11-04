@@ -30,3 +30,5 @@ serde = [
     "sdecode-preimages/serde",
     "sdecode-core/serde"
 ]
+indexmap = ["sdecode-solidity/indexmap"]
+hashbrown = ["sdecode-solidity/hashbrown"]
