@@ -43,7 +43,7 @@ pub fn to_mod_name(s: &str) -> String {
                 res.push(ch.to_ascii_lowercase());
                 state = State::SingleUpper;
             }
-            (State::Unknown, Some(Case::Lower)) => {
+            (State::Unknown | State::SingleUpper, Some(Case::Lower)) => {
                 res.push(ch);
                 state = State::Lower;
             }
@@ -51,10 +51,6 @@ pub fn to_mod_name(s: &str) -> String {
                 res.push('_');
                 res.push(ch.to_ascii_lowercase());
                 state = State::SingleUpper;
-            }
-            (State::SingleUpper, Some(Case::Lower)) => {
-                res.push(ch);
-                state = State::Lower;
             }
             (State::SingleUpper, Some(Case::Upper)) => {
                 state = State::Upper(ch);
@@ -129,5 +125,7 @@ mod tests {
         test("Abc12defGhi345klmN", "abc12def_ghi345klm_n");
         test("20erc", "20erc");
         test("ERC20erc20", "erc20_erc20");
+        test("erc20ERC20", "erc20_erc20");
+        test("ERC20ERC20", "erc20erc20");
     }
 }
