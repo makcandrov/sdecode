@@ -12,6 +12,7 @@ use crate::{
 #[derive(Debug, Clone, Default)]
 pub struct UdtExpansion {
     pub structure_def: TokenStream,
+    pub from_into_impl: TokenStream,
     pub sol_storage_type_impl: TokenStream,
     pub sol_storage_value_impl: TokenStream,
     pub sol_mapping_key_type_impl: TokenStream,
@@ -21,7 +22,8 @@ impl UdtExpansion {
     pub fn expand(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result<Self> {
         Ok(Self {
             structure_def: expand_structure_def(sc, udt)?,
-            sol_storage_type_impl: expand_sol_storage_type_impl(sc, udt)?,
+            from_into_impl: expand_sol_storage_type_impl(sc, udt)?,
+            sol_storage_type_impl: expand_from_into_impl(sc, udt)?,
             sol_storage_value_impl: expand_sol_storage_value_impl(sc, udt)?,
             sol_mapping_key_type_impl: expand_sol_mapping_key_type_impl(sc, udt)?,
         })
@@ -30,6 +32,7 @@ impl UdtExpansion {
     pub fn into_tokens(self) -> TokenStream {
         let mut res = TokenStream::new();
         res.extend(self.structure_def);
+        res.extend(self.from_into_impl);
         res.extend(self.sol_storage_type_impl);
         res.extend(self.sol_storage_value_impl);
         res.extend(self.sol_mapping_key_type_impl);
@@ -57,6 +60,36 @@ fn expand_structure_def(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result<TokenStr
     };
 
     Ok(structure_def)
+}
+
+fn expand_from_into_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result<TokenStream> {
+    if udt.attrs.remote.is_some() {
+        return Ok(TokenStream::new());
+    }
+
+    let structure_ident = udt.rust_ident();
+
+    let typ = if let Some(overriden_type) = &udt.attrs.typ {
+        quote! { #overriden_type }
+    } else {
+        get_default_rust_type(sc, &udt.raw.ty)?
+    };
+
+    let from_into_impl = quote! {
+        impl ::core::convert::From<#typ> for #structure_ident {
+            fn from(value: #typ) -> Self {
+                Self(value)
+            }
+        }
+
+        impl ::core::convert::From<#structure_ident> for #typ {
+            fn from(value: #structure_ident) -> Self {
+                value.0
+            }
+        }
+    };
+
+    Ok(from_into_impl)
 }
 
 fn expand_sol_storage_type_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result<TokenStream> {
@@ -89,6 +122,12 @@ fn expand_sol_storage_value_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result
     let sdecode_solidity = sc.file.sdecode_solidity();
     let sdecode_core = sc.file.sdecode_core();
 
+    let typ = if let Some(overriden_type) = &udt.attrs.typ {
+        quote! { #overriden_type }
+    } else {
+        get_default_rust_type(sc, &udt.raw.ty)?
+    };
+
     let sol_storage_value_impl = quote! {
         #[automatically_derived]
         #[allow(
@@ -103,11 +142,11 @@ fn expand_sol_storage_value_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result
                 Reader: #sdecode_core::StorageReader,
             {
                 let value = <
-                    #sdecode_solidity::helpers::SolStructureHelper<Self, _, #sol_typ>
+                    #sdecode_solidity::helpers::SolStructureHelper<Self, #typ, #sol_typ>
                     as #sdecode_solidity::SolStorageValue<_>
                 >::decode_storage(storage_reader)?.0;
 
-                Ok(Self(value))
+                Ok(Self::from(value))
             }
         }
     };
@@ -138,13 +177,13 @@ fn expand_sol_mapping_key_type_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Res
                 fn into_sol_mapping_key(self) -> #alloy_primitives::Bytes {
                     <
                         #typ as #sdecode_solidity::SolMappingKeyValue<#sol_typ>
-                    >::into_sol_mapping_key(self.0)
+                    >::into_sol_mapping_key(<#typ>::from(self))
                 }
 
                 fn try_from_sol_mapping_key(key: #alloy_primitives::Bytes) -> ::core::result::Result<Self, #alloy_primitives::Bytes> {
                     <
                         #typ as #sdecode_solidity::SolMappingKeyValue<#sol_typ>
-                    >::try_from_sol_mapping_key(key).map(Self)
+                    >::try_from_sol_mapping_key(key).map(Self::from)
                 }
             }
         }
