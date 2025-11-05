@@ -55,12 +55,13 @@ pub fn get_sol_storage_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStrea
         }
         Type::Custom(path) => match sc.user_defined_item_path(path) {
             Ok(item) => {
-                let path_prefix = if let Some(c) = &item.scope.contract {
-                    let p = sc.with_super_kw(c.mod_name().with_span(path.first().span()));
+                let path_prefix = if let Some(c) = item.scope.contract {
+                    let p = c.mod_name().with_span(path.first().span());
                     quote! { #p :: }
                 } else {
-                    sc.super_kw()
+                    TokenStream::new()
                 };
+
                 match &item.inner {
                     UserDefinedItem::Contract(_) => {
                         quote_spanned! {path.span()=> #sol_types :: Address }
@@ -183,12 +184,13 @@ pub fn get_default_rust_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStre
         }
         Type::Custom(path) => match sc.user_defined_item_path(path) {
             Ok(item) => {
-                let path_prefix = if let Some(c) = &item.scope.contract {
-                    let p = sc.with_super_kw(c.mod_name().with_span(path.first().span()));
+                let path_prefix = if let Some(c) = item.scope.contract {
+                    let p = c.mod_name().with_span(path.first().span());
                     quote! { #p :: }
                 } else {
-                    sc.super_kw()
+                    TokenStream::new()
                 };
+
                 match &item.inner {
                     UserDefinedItem::Contract(_) => {
                         quote_spanned! {path.span()=> #alloy_primitives :: Address }

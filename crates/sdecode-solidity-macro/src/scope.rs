@@ -1,6 +1,4 @@
-use proc_macro2::TokenStream;
 use quick_impl::quick_impl;
-use quote::{ToTokens, quote};
 use syn::Ident;
 use syn_solidity::{SolIdent, SolPath};
 
@@ -51,19 +49,6 @@ impl<'a> Scope<'a> {
             inner,
             scope: self.in_contract(contract),
         }
-    }
-
-    pub fn super_kw(&self) -> TokenStream {
-        if self.contract.is_some() {
-            quote! { super:: }
-        } else {
-            TokenStream::new()
-        }
-    }
-
-    pub fn with_super_kw(&self, tokens: impl ToTokens) -> TokenStream {
-        let super_kw = self.super_kw();
-        quote! { #super_kw #tokens}
     }
 }
 

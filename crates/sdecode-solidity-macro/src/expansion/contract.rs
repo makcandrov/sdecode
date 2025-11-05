@@ -101,6 +101,8 @@ impl ContractExpansion {
 
         quote! {
             pub mod #mod_name {
+                use super::*;
+
                 #res
             }
             #pub_use
