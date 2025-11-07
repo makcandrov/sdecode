@@ -14,7 +14,7 @@ pub mod solidity {
     pub use super::sol_storage;
 }
 
-pub use core::{StorageDecode, StorageEntries, StorageError};
+pub use core::{SdecodeMutResult, SdecodeResult, StorageDecode, StorageEntries, StorageError};
 
 pub use preimages::{Image, Preimage, PreimageEntry, PreimagesProvider, PreimagesProviderMut};
 

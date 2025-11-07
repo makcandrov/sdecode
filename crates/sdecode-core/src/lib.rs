@@ -6,8 +6,7 @@ use std::collections::BTreeMap;
 pub type StorageEntries = BTreeMap<B256, B256>;
 
 mod decode;
-
-pub use decode::{StorageDecode, StorageError};
+pub use decode::{SdecodeMutResult, SdecodeResult, StorageDecode, StorageError};
 
 mod item;
 pub use item::{AnchorKind, HashChain, HashLink, StorageItem};

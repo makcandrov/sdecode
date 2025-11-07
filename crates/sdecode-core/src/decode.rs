@@ -12,15 +12,12 @@ pub trait StorageDecode: Sized {
     fn sdecode_mut<P, E>(
         preimages_provider: &mut P,
         storage_entries: E,
-    ) -> Result<Self, StorageError<P::Error, Self::LayoutError>>
+    ) -> SdecodeMutResult<Self, P>
     where
         P: PreimagesProviderMut,
         E: IntoIterator<Item = (B256, B256)>;
 
-    fn sdecode<P, E>(
-        preimages_provider: P,
-        storage_entries: E,
-    ) -> Result<Self, StorageError<P::Error, Self::LayoutError>>
+    fn sdecode<P, E>(preimages_provider: P, storage_entries: E) -> SdecodeResult<Self, P>
     where
         P: PreimagesProvider,
         E: IntoIterator<Item = (B256, B256)>,
@@ -31,6 +28,16 @@ pub trait StorageDecode: Sized {
         )
     }
 }
+
+pub type SdecodeResult<T, Provider> = Result<
+    T,
+    StorageError<<Provider as PreimagesProvider>::Error, <T as StorageDecode>::LayoutError>,
+>;
+
+pub type SdecodeMutResult<T, Provider> = Result<
+    T,
+    StorageError<<Provider as PreimagesProviderMut>::Error, <T as StorageDecode>::LayoutError>,
+>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, thiserror::Error)]
 #[quick_impl_all(pub const is, pub is_and, pub as_ref, pub as_ref_mut, pub into, pub try_into)]
