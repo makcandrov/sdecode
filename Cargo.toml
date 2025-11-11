@@ -32,10 +32,10 @@ alloy-primitives = "1"
 alloy-sol-types = "1"
 syn-solidity = "1"
 
-revm = "31"
+revm = "32"
 revm-bytecode = "7"
-revm-inspector = "12"
-revm-interpreter = "29"
+revm-inspector = "13"
+revm-interpreter = "30"
 
 hashbrown = "0.16"
 indexmap = "2"
