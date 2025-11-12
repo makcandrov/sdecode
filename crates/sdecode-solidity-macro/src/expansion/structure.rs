@@ -4,8 +4,8 @@ use syn::LitStr;
 use syn_solidity::Spanned;
 
 use crate::{
-    attribute::StructureFieldAttrs, get_sol_storage_type, pp::PPStruct, scope::Scope,
-    types::get_default_rust_type,
+    attribute::StructureFieldAttrs, pp::PPStruct, scope::Scope, types::get_default_rust_type,
+    types::get_sol_storage_type,
 };
 
 #[derive(Debug, Clone, Default)]

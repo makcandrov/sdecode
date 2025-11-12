@@ -1,5 +1,7 @@
-use std::time::Instant;
+use std::{collections::BTreeMap, time::Instant};
 
+use alloy_primitives::{Address, aliases::U24};
+use hashbrown::HashMap;
 use sdecode::solidity::sol_storage;
 use sdecode_test_utils::{JsonUtils, SdecodeTestContract};
 
@@ -34,6 +36,7 @@ sol_storage! {
         /// @inheritdoc IUniswapV3Factory
         mapping(uint24 => int24) public override feeAmountTickSpacing;
         /// @inheritdoc IUniswapV3Factory
+        #[sdecode(type = HashMap<Address, HashMap<Address, BTreeMap<U24, Address>>>)]
         mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
     }
 }

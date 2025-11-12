@@ -12,8 +12,8 @@ use syn_solidity::{
 
 use crate::{
     attribute::{ContractAttrs, GlobalAttrs, StorageVariableAttrs, StructureAttrs, UdtAttrs},
+    case::to_mod_name,
     linearize::c3_linearize,
-    utils::to_mod_name,
 };
 
 #[derive(Debug, Clone)]

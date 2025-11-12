@@ -1,5 +1,7 @@
-use std::time::Instant;
+use std::{collections::BTreeMap, time::Instant};
 
+use alloy_primitives::Address;
+use hashbrown::HashMap;
 use sdecode::solidity::sol_storage;
 use sdecode_test_utils::{JsonUtils, SdecodeTestContract};
 
@@ -45,6 +47,7 @@ sol_storage! {
         /// @inheritdoc IMorphoBase
         address public feeRecipient;
         /// @inheritdoc IMorphoStaticTyping
+        #[sdecode(type = BTreeMap<Id, HashMap<Address, Position>>)]
         mapping(Id => mapping(address => Position)) public position;
         /// @inheritdoc IMorphoStaticTyping
         mapping(Id => Market) public market;

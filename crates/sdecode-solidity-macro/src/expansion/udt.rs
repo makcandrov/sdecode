@@ -3,9 +3,9 @@ use quote::quote;
 use syn::LitStr;
 
 use crate::{
-    get_sol_storage_type,
     pp::PPUdt,
     scope::Scope,
+    types::get_sol_storage_type,
     types::{get_default_rust_type, is_mapping_key_type},
 };
 

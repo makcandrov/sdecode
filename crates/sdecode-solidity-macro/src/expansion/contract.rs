@@ -3,10 +3,10 @@ use quote::{ToTokens, quote};
 use syn_solidity::Spanned;
 
 use crate::{
-    get_sol_storage_type,
     pp::{PPContract, PPVariableDef, UserDefinedItem},
     scope::Scope,
     types::get_default_rust_type,
+    types::get_sol_storage_type,
 };
 
 use super::{EnumExpansion, StructureExpansion, UdtExpansion};
