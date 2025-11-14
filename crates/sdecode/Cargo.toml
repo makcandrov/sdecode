@@ -19,6 +19,7 @@ sdecode-solidity.workspace = true
 sdecode-solidity-macro.workspace = true
 
 [dev-dependencies]
+sdecode-solidity = { workspace = true, features = ["hashbrown"] }
 sdecode-test-utils.workspace = true
 
 alloy-primitives.workspace = true

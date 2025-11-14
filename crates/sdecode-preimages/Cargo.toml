@@ -15,7 +15,7 @@ all-features = true
 [dependencies]
 alloy-primitives.workspace = true
 
-serde = { workspace = true, features = ["derive"], optional = true }
+serde = { workspace = true, optional = true }
 hashbrown.workspace = true
 
 auto_impl.workspace = true
@@ -23,7 +23,11 @@ quick-impl.workspace = true
 overf.workspace = true
 
 [dev-dependencies]
-alloy-primitives = { workspace = true, features = ["getrandom"] }
+alloy-primitives = { workspace = true, features = ["rand"] }
 
 [features]
-serde = ["dep:serde", "alloy-primitives/serde"]
+serde = [
+    "dep:serde",
+    "serde/derive",
+    "alloy-primitives/serde"
+]
