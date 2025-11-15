@@ -5,6 +5,7 @@ use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesPr
 use crate::utils::b256_to_u256;
 
 pub const MAX_STORAGE_OFFSET: usize = 0xffffffffffff;
+pub const MAX_STORAGE_OFFSET_U256: U256 = U256::from_be_slice(&MAX_STORAGE_OFFSET.to_be_bytes());
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]

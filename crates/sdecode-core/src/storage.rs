@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, btree_map};
 
 use alloy_primitives::{B256, Bytes, U256};
-use overf::checked;
+use overf::{checked, propagating, saturating};
 use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, caches::StoragePreimagesCache};
 
 use crate::{
-    AnchorKind, MAX_STORAGE_OFFSET, MappingKeySide, StorageItem, StorageNode, StorageReader,
+    AnchorKind, MAX_STORAGE_OFFSET_U256, MappingKeySide, StorageItem, StorageNode, StorageReader,
     StorageStructure, reader::StorageReaderImpl, utils::b256_to_u256,
 };
 
@@ -23,7 +23,7 @@ impl Storage {
         side: MappingKeySide,
     ) -> Result<Self, P::Error> {
         Self::decode_mut(
-            &mut StoragePreimagesCache::new(provider, U256::from(MAX_STORAGE_OFFSET)),
+            &mut StoragePreimagesCache::new(provider, MAX_STORAGE_OFFSET_U256),
             storage_entries,
             side,
         )
@@ -77,10 +77,7 @@ impl Storage {
     pub fn reader_at(&mut self, slot: B256) -> impl StorageReader {
         let slot_u256 = b256_to_u256(slot);
 
-        // todo: use MAX_STORAGE_OFFSET
-        let upper_u256 = slot_u256
-            .checked_add(U256::from(usize::MAX))
-            .unwrap_or(U256::MAX);
+        let upper_u256 = saturating! { slot_u256 + MAX_STORAGE_OFFSET_U256};
         let upper = B256::from(upper_u256);
         let upper_u256 = if let Some((upper, _)) = self.anchors.range(slot..=upper).last() {
             b256_to_u256(*upper)
@@ -93,7 +90,7 @@ impl Storage {
 
         StorageReaderImpl::new((0..=max_delta).filter_map(move |i| {
             let i = U256::from(i);
-            let slot = B256::from(slot_u256.checked_add(i)?);
+            let slot = B256::from(propagating! { slot_u256 + i });
             Some(self.anchors.remove(&slot).unwrap_or_default())
         }))
     }

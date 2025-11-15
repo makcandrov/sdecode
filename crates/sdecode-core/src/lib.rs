@@ -22,7 +22,7 @@ use reader::StorageReaderImpl;
 pub use reader::{IntoStorageReader, StorageReader, StorageReaderNext, SubB256};
 
 mod slot;
-pub use slot::{DecodedStorageSlot, MAX_STORAGE_OFFSET};
+pub use slot::{DecodedStorageSlot, MAX_STORAGE_OFFSET, MAX_STORAGE_OFFSET_U256};
 
 mod storage;
 pub use storage::Storage;
