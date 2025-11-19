@@ -18,21 +18,25 @@ pub struct MemoryPreimagesProvider {
 }
 
 impl MemoryPreimagesProvider {
+    #[inline]
     pub const fn new() -> Self {
         Self {
             preimages: BTreeMap::new(),
         }
     }
 
+    #[inline]
     pub fn len(&self) -> usize {
         self.preimages.len()
     }
 
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.preimages.is_empty()
     }
 
     /// Insert a preimage.
+    #[inline]
     pub fn insert(&mut self, preimage: Preimage) -> Image {
         let image = keccak256(&preimage);
         self.insert_unchecked(image, preimage);
@@ -40,23 +44,29 @@ impl MemoryPreimagesProvider {
     }
 
     /// Insert a preimage entry.
+    #[inline]
     pub fn insert_entry(&mut self, entry: PreimageEntry) -> bool {
         let (image, preimage) = entry.into_parts();
         self.insert_unchecked(image, preimage)
     }
 
     /// Insert a preimage without checking the validity.
+    #[inline]
     pub fn insert_unchecked(&mut self, image: Image, preimage: Preimage) -> bool {
-        self.preimages.insert(image, preimage).is_none()
+        self.insert_unchecked_with(image, || preimage)
     }
 
+    #[inline]
     pub fn insert_unchecked_with(
         &mut self,
         image: Image,
-        mut preimage: impl FnMut() -> Preimage,
+        preimage: impl FnOnce() -> Preimage,
     ) -> bool {
         match self.preimages.entry(image) {
-            btree_map::Entry::Occupied(_) => false,
+            btree_map::Entry::Occupied(e) => {
+                debug_assert_eq!(e.get(), &preimage());
+                false
+            }
             btree_map::Entry::Vacant(e) => {
                 e.insert(preimage());
                 true
