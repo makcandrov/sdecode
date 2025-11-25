@@ -40,20 +40,17 @@ pub enum HashLink {
 }
 
 impl StorageItem {
+    #[inline]
     pub fn decode<P: PreimagesProvider>(
         provider: P,
         side: MappingKeySide,
         slot: B256,
         value: B256,
     ) -> Result<Self, P::Error> {
-        Self::decode_inner(
-            &mut WrapPreimagesProvider(provider),
-            side,
-            slot,
-            HashLink::Leaf { value },
-        )
+        Self::decode_mut(&mut WrapPreimagesProvider(provider), side, slot, value)
     }
 
+    #[inline]
     pub fn decode_mut<P: PreimagesProviderMut>(
         provider: &mut P,
         side: MappingKeySide,

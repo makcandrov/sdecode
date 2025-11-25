@@ -115,6 +115,30 @@ impl StorageStructure {
     }
 }
 
+impl From<B256> for StorageNode {
+    fn from(word: B256) -> Self {
+        Self::word(word)
+    }
+}
+
+impl From<HashLink> for StorageNode {
+    fn from(link: HashLink) -> Self {
+        Self::from_link(link)
+    }
+}
+
+impl From<StorageNode> for StorageStructure {
+    fn from(node: StorageNode) -> Self {
+        Self::single_node(node)
+    }
+}
+
+impl From<HashChain> for StorageStructure {
+    fn from(chain: HashChain) -> Self {
+        Self::from_chain(chain)
+    }
+}
+
 impl FromIterator<StorageNode> for StorageStructure {
     fn from_iter<T: IntoIterator<Item = StorageNode>>(iter: T) -> Self {
         Self(iter.into_iter().collect())

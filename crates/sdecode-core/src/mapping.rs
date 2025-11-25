@@ -65,14 +65,11 @@ impl MappingEntryLocation {
     }
 
     pub fn into_preimage(self, side: MappingKeySide) -> Bytes {
-        match side {
-            MappingKeySide::Left => [self.entry_key.as_ref(), self.mapping_slot.as_ref()]
-                .concat()
-                .into(),
-            MappingKeySide::Right => [self.mapping_slot.as_ref(), self.entry_key.as_ref()]
-                .concat()
-                .into(),
-        }
+        let b = match side {
+            MappingKeySide::Left => [self.entry_key.as_ref(), self.mapping_slot.as_ref()],
+            MappingKeySide::Right => [self.mapping_slot.as_ref(), self.entry_key.as_ref()],
+        };
+        b.concat().into()
     }
 }
 
