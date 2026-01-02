@@ -28,14 +28,14 @@ sdecode-solidity = { path = "crates/sdecode-solidity" }
 sdecode-solidity-macro = { path = "crates/sdecode-solidity-macro" }
 sdecode-test-utils = { path = "crates/sdecode-test-utils" }
 
-alloy-primitives = "1"
-alloy-sol-types = "1"
+alloy-primitives = { version = "1", default-features = false }
+alloy-sol-types = { version = "1", default-features = false }
 syn-solidity = "1"
 
 revm = "33"
-revm-bytecode = "7"
-revm-inspector = "14"
-revm-interpreter = "31"
+revm-bytecode = { version = "7", default-features = false }
+revm-inspector = { version = "14", default-features = false }
+revm-interpreter = { version = "31", default-features = false }
 
 hashbrown = "0.16"
 indexmap = "2"
