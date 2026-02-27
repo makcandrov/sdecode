@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
-use std::{collections::BTreeSet, mem::take};
+use std::collections::BTreeSet;
 
 use alloy_primitives::{Address, B256, Bytes, U256};
 use hashbrown::{HashMap, hash_map::Entry};
@@ -19,8 +19,11 @@ use sdecode_preimages::{Image, MemoryPreimagesProvider, Preimage};
 #[quick_impl]
 pub struct PreimagesInspector {
     unconfirmed: Option<(U256, U256)>,
+
+    #[quick_impl(pub const get = "{}", pub take, pub into)]
     preimages: HashMap<Image, Preimage>,
-    #[quick_impl(pub get = "{}", pub get_mut = "{}_mut", pub with, pub set)]
+
+    #[quick_impl(pub const get = "{}", pub const get_mut = "{}_mut", pub with, pub set)]
     targets: InspectorTargets,
 }
 
@@ -139,21 +142,6 @@ impl PreimagesInspector {
 
     pub fn new_including_only(targets: impl IntoIterator<Item = Address>) -> Self {
         Self::new_with_target(InspectorTargets::include_only(targets))
-    }
-
-    /// Preimages reference.
-    pub const fn preimages(&self) -> &HashMap<Image, Preimage> {
-        &self.preimages
-    }
-
-    /// Take preimages.
-    pub fn take_preimages(&mut self) -> HashMap<Image, Preimage> {
-        take(&mut self.preimages)
-    }
-
-    /// Into preimages.
-    pub fn into_preimages(self) -> HashMap<Image, Preimage> {
-        self.preimages
     }
 
     pub fn into_provider(self) -> MemoryPreimagesProvider {
