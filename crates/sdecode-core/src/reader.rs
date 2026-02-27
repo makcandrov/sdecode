@@ -83,11 +83,19 @@ where
         };
 
         match reader.next::<B>() {
-            Ok(word) => Ok(StorageReaderNext {
-                word,
-                children: children.clone(),
-                remaining,
-            }),
+            Ok(word) => {
+                let children = if reader.is_empty() {
+                    self.current.take().unwrap().1
+                } else {
+                    children.clone()
+                };
+
+                Ok(StorageReaderNext {
+                    word,
+                    children,
+                    remaining,
+                })
+            }
             Err(remaining) => {
                 if let Some(next) = self.iterator.next() {
                     let value = next.value();
@@ -126,10 +134,12 @@ where
         if let Some((reader, _)) = &mut self.current {
             let remaining_size = reader.remaining_size();
             if remaining_size == 32 || remaining_size == 0 {
-                Bytes::default();
+                RemainingBytes::default()
+            } else {
+                let remaining = reader.consume_remaining();
+                self.current = None;
+                remaining
             }
-
-            reader.consume_remaining()
         } else {
             RemainingBytes::default()
         }
@@ -169,6 +179,12 @@ impl<const RIGHT_TO_LEFT: bool> B256Reader<RIGHT_TO_LEFT> {
         }
     }
 
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.remaining_size() == 0
+    }
+
+    #[inline]
     pub const fn remaining_size(&self) -> usize {
         self.index
     }
@@ -221,7 +237,18 @@ impl_subb256!(
 mod tests {
     use super::*;
 
+    use std::iter::empty;
+
     use alloy_primitives::{b256, fixed_bytes};
+
+    #[test]
+    fn test_consume_remaining_unread_slot() {
+        let non_zero = b256!("0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef");
+        let mut reader = StorageReaderImpl::new(empty::<StorageNode>());
+        reader.current = Some((B256Reader::new(non_zero), Default::default()));
+
+        assert_eq!(reader.consume_remaining(), RemainingBytes::default());
+    }
 
     #[test]
     fn test_b256_reader_r2l() {

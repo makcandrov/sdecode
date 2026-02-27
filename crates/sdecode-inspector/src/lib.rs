@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
-use std::{collections::BTreeSet, mem::replace};
+use std::{collections::BTreeSet, mem::take};
 
 use alloy_primitives::{Address, B256, Bytes, U256};
 use hashbrown::{HashMap, hash_map::Entry};
@@ -148,7 +148,7 @@ impl PreimagesInspector {
 
     /// Take preimages.
     pub fn take_preimages(&mut self) -> HashMap<Image, Preimage> {
-        replace(&mut self.preimages, HashMap::new())
+        take(&mut self.preimages)
     }
 
     /// Into preimages.

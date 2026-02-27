@@ -23,7 +23,7 @@ sdecode-solidity = { workspace = true, features = ["hashbrown"] }
 sdecode-test-utils.workspace = true
 
 alloy-primitives.workspace = true
-hashbrown.workspace = true
+hashbrown = { workspace = true, features = ["serde"] }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

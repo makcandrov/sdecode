@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, btree_map};
+use std::{
+    cmp::Ordering,
+    collections::{BTreeMap, btree_map},
+};
 
 use alloy_primitives::{B256, Bytes};
 use quick_impl::quick_impl;
@@ -98,19 +101,28 @@ impl StorageStructure {
     }
 
     pub fn from_chain(chain: HashChain) -> Self {
-        let mut nodes = vec![StorageNode::empty(); chain.offset];
+        let mut nodes = Vec::with_capacity(chain.offset + 1);
+        nodes.resize_with(chain.offset, StorageNode::empty);
         let last_node = StorageNode::from_link(chain.link);
         nodes.push(last_node);
         Self(nodes)
     }
 
     pub fn add_chain(&mut self, chain: HashChain) {
-        if let Some(delta) = chain.offset.checked_sub(self.0.len()) {
-            self.0.extend(vec![StorageNode::empty(); delta]);
-            self.0.push(StorageNode::from_link(chain.link));
-        } else {
-            let node = &mut self.0[chain.offset];
-            node.add_link(chain.link);
+        match chain.offset.cmp(&self.0.len()) {
+            Ordering::Less => {
+                let node = &mut self.0[chain.offset];
+                node.add_link(chain.link);
+            }
+            Ordering::Equal => {
+                let node = StorageNode::from_link(chain.link);
+                self.0.push(node)
+            }
+            Ordering::Greater => {
+                let node = StorageNode::from_link(chain.link);
+                self.0.resize_with(chain.offset, StorageNode::empty);
+                self.0.push(node);
+            }
         }
     }
 }
