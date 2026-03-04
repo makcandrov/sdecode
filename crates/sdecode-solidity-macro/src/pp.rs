@@ -349,8 +349,8 @@ impl<'a> PPEnum<'a> {
     }
 
     pub fn rust_path(&self) -> TokenStream {
-        if let Some(renmote) = &self.attrs.remote {
-            renmote.to_token_stream()
+        if let Some(remote) = &self.attrs.remote {
+            remote.to_token_stream()
         } else if let Some(rename) = &self.attrs.rename {
             rename.to_token_stream()
         } else {
@@ -388,8 +388,8 @@ impl<'a> PPUdt<'a> {
     }
 
     pub fn rust_path(&self) -> TokenStream {
-        if let Some(renmote) = &self.attrs.remote {
-            renmote.to_token_stream()
+        if let Some(remote) = &self.attrs.remote {
+            remote.to_token_stream()
         } else if let Some(rename) = &self.attrs.rename {
             rename.to_token_stream()
         } else {

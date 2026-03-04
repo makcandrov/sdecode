@@ -32,10 +32,10 @@ alloy-primitives = { version = "1", default-features = false }
 alloy-sol-types = { version = "1", default-features = false }
 syn-solidity = "1"
 
-revm = "34"
-revm-bytecode = { version = "8", default-features = false }
-revm-inspector = { version = "15", default-features = false }
-revm-interpreter = { version = "32", default-features = false }
+revm = "35"
+revm-bytecode = { version = "9", default-features = false }
+revm-inspector = { version = "16", default-features = false }
+revm-interpreter = { version = "33", default-features = false }
 
 hashbrown = "0.16"
 indexmap = "2"
