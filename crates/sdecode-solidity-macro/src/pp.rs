@@ -16,7 +16,7 @@ use crate::{
     linearize::c3_linearize,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct PPFile<'a> {
     pub attrs: GlobalAttrs,
     pub remaining_attrs: TokenStream,
@@ -25,9 +25,6 @@ pub struct PPFile<'a> {
     pub udis: IndexMap<Ident, UserDefinedItem<'a>>,
 
     pub contracts: Vec<Rc<PPContract<'a>>>,
-
-    #[expect(unused)]
-    pub raw: &'a File,
 }
 
 impl<'a> PPFile<'a> {
@@ -146,10 +143,6 @@ impl<'a> PPFile<'a> {
             remaining_attrs,
             udis,
             contracts,
-            // structs,
-            // enums,
-            // udts,
-            raw: file,
         })
     }
 

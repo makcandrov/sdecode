@@ -5,7 +5,8 @@ use std::marker::PhantomData;
 use alloy_primitives::{B256, Bytes};
 use sdecode_core::{IntoStorageReader, StorageReader, StorageReaderNext};
 
-use crate::{SolLayoutError, SolStorageType, SolStorageValue, sol_types, utils::b256_to_u256};
+use crate::sol_type;
+use crate::{SolLayoutError, SolStorageType, SolStorageValue, utils::b256_to_u256};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SolDynamicArrayHelper<A, T>(pub A, PhantomData<T>);
@@ -16,7 +17,7 @@ impl<A, T> SolDynamicArrayHelper<A, T> {
     }
 }
 
-impl<A, T, SolT> SolStorageValue<sol_types::Array<SolT>> for SolDynamicArrayHelper<A, T>
+impl<A, T, SolT> SolStorageValue<sol_type!(SolT[])> for SolDynamicArrayHelper<A, T>
 where
     A: FromIterator<T>,
     T: SolStorageValue<SolT>,
@@ -37,12 +38,14 @@ where
         }
 
         let Ok(size) = u64::try_from(b256_to_u256(word)) else {
-            return Err(SolLayoutError::Err);
+            return Err(SolLayoutError::ArrayLengthOverflow { value: word });
         };
 
         let child = children.remove(&Bytes::new()).unwrap_or_default();
         if !children.is_empty() {
-            return Err(SolLayoutError::Err);
+            return Err(SolLayoutError::UnexpectedChildren {
+                count: children.len(),
+            });
         }
 
         let mut child_storage_reader = child.into_storage_reader();
@@ -53,7 +56,7 @@ where
     }
 }
 
-impl<T, SolT> SolStorageValue<sol_types::Array<SolT>> for Vec<T>
+impl<T, SolT> SolStorageValue<sol_type!(SolT[])> for Vec<T>
 where
     T: SolStorageValue<SolT>,
     SolT: SolStorageType,
@@ -66,7 +69,7 @@ where
     }
 }
 
-impl<T, SolT, S> SolStorageValue<sol_types::Array<SolT>> for HashSet<T, S>
+impl<T, SolT, S> SolStorageValue<sol_type!(SolT[])> for HashSet<T, S>
 where
     S: BuildHasher + Default,
     SolT: SolStorageType,
@@ -84,7 +87,7 @@ where
 const _: () = {
     use hashbrown::HashSet;
 
-    impl<T, SolT, S> SolStorageValue<sol_types::Array<SolT>> for HashSet<T, S>
+    impl<T, SolT, S> SolStorageValue<sol_type!(SolT[])> for HashSet<T, S>
     where
         S: BuildHasher + Default,
         SolT: SolStorageType,
@@ -103,7 +106,7 @@ const _: () = {
 const _: () = {
     use indexmap::IndexSet;
 
-    impl<T, SolT, S> SolStorageValue<sol_types::Array<SolT>> for IndexSet<T, S>
+    impl<T, SolT, S> SolStorageValue<sol_type!(SolT[])> for IndexSet<T, S>
     where
         S: BuildHasher + Default,
         SolT: SolStorageType,

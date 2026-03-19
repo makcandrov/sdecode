@@ -14,7 +14,7 @@ impl ArraySizeEvaluator {
         Self {}
     }
 
-    pub fn eval(&self, sc: &Scope<'_>, expr: &Expr) -> syn::Result<ArraySize> {
+    pub fn eval(&self, sc: Option<&Scope<'_>>, expr: &Expr) -> syn::Result<ArraySize> {
         match expr {
             Expr::Lit(Lit::Number(LitNumber::Int(n))) => n
                 .base10_digits()
@@ -29,26 +29,32 @@ impl ArraySizeEvaluator {
                 let value = self.eval(sc, &unary.expr)?;
                 self.eval_unop(unary.op, value)
             }
-            Expr::Ident(ident) => match sc.user_defined_item_ident(&ident.0) {
-                Some(Scoped {
-                    inner: UserDefinedItem::Variable(var),
-                    scope,
-                }) => {
-                    if !var.raw.attributes.has_constant() {
-                        return Err(syn::Error::new(ident.span(), "non constant variable"));
+            Expr::Ident(ident) => {
+                if let Some(sc) = sc {
+                    match sc.user_defined_item_ident(&ident.0) {
+                        Some(Scoped {
+                            inner: UserDefinedItem::Variable(var),
+                            scope,
+                        }) => {
+                            if !var.raw.attributes.has_constant() {
+                                return Err(syn::Error::new(ident.span(), "non constant variable"));
+                            }
+
+                            let Some((_, initializer)) = &var.raw.initializer else {
+                                return Err(syn::Error::new(
+                                    ident.span(),
+                                    "variable without initializer",
+                                ));
+                            };
+
+                            self.eval(Some(&scope), initializer)
+                        }
+                        _ => Err(syn::Error::new(ident.span(), "expected constant variable")),
                     }
-
-                    let Some((_, initializer)) = &var.raw.initializer else {
-                        return Err(syn::Error::new(
-                            ident.span(),
-                            "variable without initializer",
-                        ));
-                    };
-
-                    self.eval(&scope, initializer)
+                } else {
+                    Err(syn::Error::new(ident.span(), "expected literal"))
                 }
-                _ => Err(syn::Error::new(ident.span(), "expected constant variable")),
-            },
+            }
             _ => Err(syn::Error::new(
                 expr.span(),
                 "unable to determine array length",

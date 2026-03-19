@@ -15,18 +15,18 @@ members = [
 ]
 default-members = ["crates/sdecode"]
 
-resolver = "2"
+resolver = "3"
 
 [workspace.dependencies]
-sdecode-cli = { path = "bin/cli" }
+sdecode-cli = { path = "bin/cli", version = "0.1" }
 
-sdecode = { path = "crates/sdecode" }
-sdecode-core = { path = "crates/sdecode-core" }
-sdecode-inspector = { path = "crates/sdecode-inspector" }
-sdecode-preimages = { path = "crates/sdecode-preimages" }
-sdecode-solidity = { path = "crates/sdecode-solidity" }
-sdecode-solidity-macro = { path = "crates/sdecode-solidity-macro" }
-sdecode-test-utils = { path = "crates/sdecode-test-utils" }
+sdecode = { path = "crates/sdecode", version = "0.1" }
+sdecode-core = { path = "crates/sdecode-core", version = "0.1" }
+sdecode-inspector = { path = "crates/sdecode-inspector", version = "0.1" }
+sdecode-preimages = { path = "crates/sdecode-preimages", version = "0.1" }
+sdecode-solidity = { path = "crates/sdecode-solidity", version = "0.1" }
+sdecode-solidity-macro = { path = "crates/sdecode-solidity-macro", version = "0.1" }
+sdecode-test-utils = { path = "crates/sdecode-test-utils", version = "0.1" }
 
 alloy-primitives = { version = "1", default-features = false }
 alloy-sol-types = { version = "1", default-features = false }

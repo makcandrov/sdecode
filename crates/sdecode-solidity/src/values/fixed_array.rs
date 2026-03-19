@@ -6,7 +6,7 @@ use std::{
 
 use sdecode_core::StorageReader;
 
-use crate::{SolLayoutError, SolStorageType, SolStorageValue, sol_types};
+use crate::{SolLayoutError, SolStorageType, SolStorageValue, sol_type};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SolFixedArrayHelper<const N: usize, A, T>(pub A, PhantomData<T>);
@@ -17,7 +17,7 @@ impl<const N: usize, A, T> SolFixedArrayHelper<N, A, T> {
     }
 }
 
-impl<const N: usize, T, SolT> SolStorageValue<sol_types::FixedArray<SolT, N>> for [T; N]
+impl<const N: usize, T, SolT> SolStorageValue<sol_type!(SolT[N])> for [T; N]
 where
     SolT: SolStorageType,
     T: SolStorageValue<SolT>,
@@ -37,7 +37,7 @@ where
     }
 }
 
-impl<const N: usize, A, T, SolT> SolStorageValue<sol_types::FixedArray<SolT, N>>
+impl<const N: usize, A, T, SolT> SolStorageValue<sol_type!(SolT[N])>
     for SolFixedArrayHelper<N, A, T>
 where
     A: FromIterator<T>,
@@ -61,7 +61,7 @@ where
     }
 }
 
-impl<const N: usize, T, SolT> SolStorageValue<sol_types::FixedArray<SolT, N>> for Vec<T>
+impl<const N: usize, T, SolT> SolStorageValue<sol_type!(SolT[N])> for Vec<T>
 where
     SolT: SolStorageType,
     T: SolStorageValue<SolT>,
@@ -74,7 +74,7 @@ where
     }
 }
 
-impl<const N: usize, T, SolT, S> SolStorageValue<sol_types::FixedArray<SolT, N>> for HashSet<T, S>
+impl<const N: usize, T, SolT, S> SolStorageValue<sol_type!(SolT[N])> for HashSet<T, S>
 where
     S: BuildHasher + Default,
     SolT: SolStorageType,
@@ -92,7 +92,7 @@ where
 const _: () = {
     use hashbrown::HashSet;
 
-    impl<const N: usize, T, SolT, S> SolStorageValue<sol_types::FixedArray<SolT, N>> for HashSet<T, S>
+    impl<const N: usize, T, SolT, S> SolStorageValue<sol_type!(SolT[N])> for HashSet<T, S>
     where
         S: BuildHasher + Default,
         SolT: SolStorageType,
@@ -111,7 +111,7 @@ const _: () = {
 const _: () = {
     use indexmap::IndexSet;
 
-    impl<const N: usize, T, SolT, S> SolStorageValue<sol_types::FixedArray<SolT, N>> for IndexSet<T, S>
+    impl<const N: usize, T, SolT, S> SolStorageValue<sol_type!(SolT[N])> for IndexSet<T, S>
     where
         S: BuildHasher + Default,
         SolT: SolStorageType,

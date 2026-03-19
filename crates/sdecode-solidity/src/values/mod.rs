@@ -57,8 +57,23 @@ pub enum SolLayoutError {
     #[error("expected empty slot, got {value}")]
     NonEmptySlot { sol_type: &'static str, value: B256 },
 
-    #[error("todo error")]
-    Err,
+    /// The slot has child entries (sub-keys) but the expected type is a leaf (e.g. a word type,
+    /// a short bytes/string, or a bytes/string data chunk). This means the storage data contains
+    /// nested structure where the layout expects a simple value.
+    #[error("unexpected children in slot: expected a leaf value but found {count} child entries")]
+    UnexpectedChildren { count: usize },
+
+    /// A dynamic array's stored length is too large to fit in a u64.
+    #[error("dynamic array length too large: {value}")]
+    ArrayLengthOverflow { value: B256 },
+
+    /// The raw bytes in a packed word could not be decoded into the expected Solidity type.
+    #[error("invalid packed word value: {word}")]
+    InvalidWordValue { word: Bytes },
+
+    /// An enum discriminant does not correspond to any known variant.
+    #[error("invalid enum discriminant: {discriminant}")]
+    InvalidEnumDiscriminant { discriminant: u8 },
 }
 
 impl SolLayoutError {

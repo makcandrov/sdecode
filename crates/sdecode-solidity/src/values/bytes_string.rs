@@ -7,11 +7,11 @@ use overf::checked;
 use sdecode_core::{IntoStorageReader, StorageReader, StorageReaderNext};
 
 use crate::{
-    SolLayoutError, SolStorageValue, sol_types,
+    SolLayoutError, SolStorageValue, sol_type,
     utils::{b256_to_u256, slice_is_zero},
 };
 
-impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
+impl SolStorageValue<sol_type!(bytes)> for bytes::BytesMut {
     /// # [`bytes` and `string`](https://docs.soliditylang.org/en/latest/internals/layout_in_storage.html#bytes-and-string)
     ///
     /// ``bytes`` and ``string`` are encoded identically.
@@ -51,7 +51,9 @@ impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
         let is_short = last_byte.is_multiple_of(2);
         if is_short {
             if !children.is_empty() {
-                return Err(SolLayoutError::Err);
+                return Err(SolLayoutError::UnexpectedChildren {
+                    count: children.len(),
+                });
             }
             let size = (last_byte / 2) as usize;
             let remaining = &word[size..31];
@@ -69,7 +71,9 @@ impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
             let child = children.remove(&Bytes::new()).unwrap_or_default();
 
             if !children.is_empty() {
-                return Err(SolLayoutError::Err);
+                return Err(SolLayoutError::UnexpectedChildren {
+                    count: children.len(),
+                });
             }
 
             let mut child_storage_reader = child.into_storage_reader();
@@ -79,7 +83,7 @@ impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
                 let next = child_storage_reader.next_or_default::<B256>();
 
                 if !next.is_remaining_zero() {
-                    return Err(SolLayoutError::Err);
+                    return Err(SolLayoutError::remaining_bytes(next.remaining));
                 }
 
                 let StorageReaderNext {
@@ -89,7 +93,9 @@ impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
                 } = next;
 
                 if !children.is_empty() {
-                    return Err(SolLayoutError::Err);
+                    return Err(SolLayoutError::UnexpectedChildren {
+                        count: children.len(),
+                    });
                 }
                 buf.put_slice(chunk.as_ref());
                 size = new_size;
@@ -99,7 +105,7 @@ impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
                 let next = child_storage_reader.next_or_default::<B256>();
 
                 if !next.is_remaining_zero() {
-                    return Err(SolLayoutError::Err);
+                    return Err(SolLayoutError::remaining_bytes(next.remaining));
                 }
 
                 let StorageReaderNext {
@@ -109,14 +115,18 @@ impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
                 } = next;
 
                 if !children.is_empty() {
-                    return Err(SolLayoutError::Err);
+                    return Err(SolLayoutError::UnexpectedChildren {
+                        count: children.len(),
+                    });
                 }
                 buf.put_slice(&chunk[0..size]);
 
                 let remaining = &chunk[size..];
 
                 if !slice_is_zero(remaining) {
-                    return Err(SolLayoutError::Err);
+                    return Err(SolLayoutError::remaining_bytes(Bytes::copy_from_slice(
+                        remaining,
+                    )));
                 }
             }
 
@@ -125,7 +135,7 @@ impl SolStorageValue<sol_types::Bytes> for bytes::BytesMut {
     }
 }
 
-impl SolStorageValue<sol_types::Bytes> for bytes::Bytes {
+impl SolStorageValue<sol_type!(bytes)> for bytes::Bytes {
     fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
     where
         Reader: StorageReader,
@@ -135,7 +145,7 @@ impl SolStorageValue<sol_types::Bytes> for bytes::Bytes {
     }
 }
 
-impl SolStorageValue<sol_types::Bytes> for Bytes {
+impl SolStorageValue<sol_type!(bytes)> for Bytes {
     fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
     where
         Reader: StorageReader,
@@ -145,7 +155,7 @@ impl SolStorageValue<sol_types::Bytes> for Bytes {
     }
 }
 
-impl SolStorageValue<sol_types::Bytes> for Vec<u8> {
+impl SolStorageValue<sol_type!(bytes)> for Vec<u8> {
     fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
     where
         Reader: StorageReader,
@@ -155,7 +165,7 @@ impl SolStorageValue<sol_types::Bytes> for Vec<u8> {
     }
 }
 
-impl SolStorageValue<sol_types::String> for String {
+impl SolStorageValue<sol_type!(string)> for String {
     fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
     where
         Reader: StorageReader,

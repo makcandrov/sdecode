@@ -126,7 +126,8 @@ fn expand_sol_storage_value_impl(
 
         destructure_fields.extend(quote! { #field_name_unspanned, });
 
-        let sol_storage_typ = get_sol_storage_type(sc, &field.ty)?;
+        let sol_storage_typ =
+            get_sol_storage_type(&sc.file.sdecode_solidity_sol_types(), Some(sc), &field.ty)?;
         sol_storage_types.extend(quote! { #sol_storage_typ, });
     }
     sol_storage_types = quote! { (#sol_storage_types) };

@@ -117,7 +117,8 @@ fn expand_sol_storage_type_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result<
 
 fn expand_sol_storage_value_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Result<TokenStream> {
     let udt_path = udt.rust_path();
-    let sol_typ = get_sol_storage_type(sc, &udt.raw.ty)?;
+    let sol_typ =
+        get_sol_storage_type(&sc.file.sdecode_solidity_sol_types(), Some(sc), &udt.raw.ty)?;
 
     let sdecode_solidity = sc.file.sdecode_solidity();
     let sdecode_core = sc.file.sdecode_core();
@@ -162,7 +163,8 @@ fn expand_sol_mapping_key_type_impl(sc: &Scope<'_>, udt: &PPUdt<'_>) -> syn::Res
     } else {
         get_default_rust_type(sc, &udt.raw.ty)?
     };
-    let sol_typ = get_sol_storage_type(sc, &udt.raw.ty)?;
+    let sol_typ =
+        get_sol_storage_type(&sc.file.sdecode_solidity_sol_types(), Some(sc), &udt.raw.ty)?;
 
     let sdecode_solidity = sc.file.sdecode_solidity();
     let alloy_primitives = sc.file.alloy_primitives();

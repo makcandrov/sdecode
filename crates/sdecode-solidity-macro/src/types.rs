@@ -1,14 +1,16 @@
-use std::num::NonZero;
+use std::{num::NonZero, ops::Deref};
 
 use crate::{array_size::ArraySizeEvaluator, pp::UserDefinedItem, scope::Scope};
 use proc_macro2::{Literal, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::Ident;
-use syn_solidity::{Spanned, Type};
+use syn_solidity::{Expr, Spanned, Type};
 
-pub fn get_sol_storage_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStream> {
-    let sol_types = sc.file.sdecode_solidity_sol_types();
-
+pub fn get_sol_storage_type(
+    sol_types: &TokenStream,
+    sc: Option<&Scope<'_>>,
+    ty: &Type,
+) -> syn::Result<TokenStream> {
     let result = match ty {
         Type::Address(span, _payable) => quote_spanned! {*span=> #sol_types :: Address },
         Type::Bool(span) => quote_spanned! {*span=> #sol_types :: Bool },
@@ -32,11 +34,25 @@ pub fn get_sol_storage_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStrea
             quote_spanned! {*span=> #sol_types :: Uint<#size> }
         }
         Type::Array(array) => {
-            let elem_ty = get_sol_storage_type(sc, &array.ty)?;
+            let elem_ty = get_sol_storage_type(sol_types, sc, &array.ty)?;
             if let Some(size) = &array.size {
-                let size = ArraySizeEvaluator::new().eval(sc, size)?;
-                let size = Literal::usize_unsuffixed(size);
-                quote_spanned! {array.span()=> #sol_types :: FixedArray<#elem_ty, #size> }
+                match ArraySizeEvaluator::new().eval(sc, size) {
+                    Ok(size) => {
+                        let size = Literal::usize_unsuffixed(size);
+                        quote_spanned! {array.span()=> #sol_types :: FixedArray<#elem_ty, #size> }
+                    }
+                    Err(err) => {
+                        if sc.is_some() {
+                            return Err(err);
+                        } else {
+                            if let Expr::Ident(ident) = &**size {
+                                quote_spanned! {array.span()=> #sol_types :: FixedArray<#elem_ty, #ident> }
+                            } else {
+                                return Err(syn::Error::new(array.span(), "expected literal"));
+                            }
+                        }
+                    }
+                }
             } else {
                 quote_spanned! {array.span()=> #sol_types :: Array<#elem_ty> }
             }
@@ -49,65 +65,72 @@ pub fn get_sol_storage_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStrea
         }
         Type::Function(function) => quote_spanned! {function.span()=> #sol_types :: Function },
         Type::Mapping(mapping) => {
-            let key_ty = get_sol_storage_type(sc, &mapping.key)?;
-            let value_ty = get_sol_storage_type(sc, &mapping.value)?;
+            let key_ty = get_sol_storage_type(sol_types, sc, &mapping.key)?;
+            let value_ty = get_sol_storage_type(sol_types, sc, &mapping.value)?;
             quote_spanned! {mapping.span()=> #sol_types :: Mapping<#key_ty, #value_ty> }
         }
-        Type::Custom(path) => match sc.user_defined_item_path(path) {
-            Ok(item) => {
-                let path_prefix = if let Some(c) = item.scope.contract {
-                    let p = c.mod_name().with_span(path.first().span());
-                    quote! { #p :: }
-                } else {
-                    TokenStream::new()
-                };
+        Type::Custom(path) => {
+            if let Some(sc) = sc {
+                match sc.user_defined_item_path(path) {
+                    Ok(item) => {
+                        let path_prefix = if let Some(c) = item.scope.contract {
+                            let p = c.mod_name().with_span(path.first().span());
+                            quote! { #p :: }
+                        } else {
+                            TokenStream::new()
+                        };
 
-                match &item.inner {
-                    UserDefinedItem::Contract(_) => {
-                        quote_spanned! {path.span()=> #sol_types :: Address }
+                        match &item.inner {
+                            UserDefinedItem::Contract(_) => {
+                                quote_spanned! {path.span()=> #sol_types :: Address }
+                            }
+                            UserDefinedItem::Struct(structure) => {
+                                let ty = structure.rust_path();
+                                quote_spanned! {path.span()=> #path_prefix #ty}
+                            }
+                            UserDefinedItem::Enum(enumm) => {
+                                let ty = enumm.rust_path();
+                                quote_spanned! {path.span()=> #path_prefix #ty}
+                            }
+                            UserDefinedItem::Udt(udt) => {
+                                let ty = udt.rust_path();
+                                quote_spanned! {path.span()=> #path_prefix #ty}
+                            }
+                            UserDefinedItem::Variable(_) => {
+                                return Err(syn::Error::new(
+                                    path.span(),
+                                    "variable cannot be resolved as a storage type",
+                                ));
+                            }
+                            UserDefinedItem::Error => {
+                                return Err(syn::Error::new(
+                                    path.span(),
+                                    "error cannot be resolved as a storage type",
+                                ));
+                            }
+                            UserDefinedItem::Event => {
+                                return Err(syn::Error::new(
+                                    path.span(),
+                                    "event cannot be resolved as a storage type",
+                                ));
+                            }
+                        }
                     }
-                    UserDefinedItem::Struct(structure) => {
-                        let ty = structure.rust_path();
-                        quote_spanned! {path.span()=> #path_prefix #ty}
-                    }
-                    UserDefinedItem::Enum(enumm) => {
-                        let ty = enumm.rust_path();
-                        quote_spanned! {path.span()=> #path_prefix #ty}
-                    }
-                    UserDefinedItem::Udt(udt) => {
-                        let ty = udt.rust_path();
-                        quote_spanned! {path.span()=> #path_prefix #ty}
-                    }
-                    UserDefinedItem::Variable(_) => {
-                        return Err(syn::Error::new(
-                            path.span(),
-                            "variable cannot be resolved as a storage type",
-                        ));
-                    }
-                    UserDefinedItem::Error => {
-                        return Err(syn::Error::new(
-                            path.span(),
-                            "error cannot be resolved as a storage type",
-                        ));
-                    }
-                    UserDefinedItem::Event => {
-                        return Err(syn::Error::new(
-                            path.span(),
-                            "event cannot be resolved as a storage type",
-                        ));
+                    Err(failed_ident) => {
+                        return Err(syn::Error::new(failed_ident.span(), "item not found"));
+                        // if path.len() > 1 {
+                        //     return Err(syn::Error::new(failed_ident.span(), "item not found"));
+                        // } else {
+                        //     let custom_ty = sc.with_super_kw(path.last());
+                        //     quote_spanned! {path.span()=> #custom_ty }
+                        // }
                     }
                 }
+            } else {
+                let path = path.deref();
+                quote_spanned! {path.span()=> #path}
             }
-            Err(failed_ident) => {
-                return Err(syn::Error::new(failed_ident.span(), "item not found"));
-                // if path.len() > 1 {
-                //     return Err(syn::Error::new(failed_ident.span(), "item not found"));
-                // } else {
-                //     let custom_ty = sc.with_super_kw(path.last());
-                //     quote_spanned! {path.span()=> #custom_ty }
-                // }
-            }
-        },
+        }
     };
 
     Ok(result)
@@ -151,7 +174,7 @@ pub fn get_default_rust_type(sc: &Scope<'_>, ty: &Type) -> syn::Result<TokenStre
         Type::Array(array) => {
             let elem_ty = get_default_rust_type(sc, &array.ty)?;
             if let Some(size) = &array.size {
-                let size = ArraySizeEvaluator::new().eval(sc, size)?;
+                let size = ArraySizeEvaluator::new().eval(Some(sc), size)?;
 
                 // Large fixed-size arrays can cause stack overflows when decoding
                 if size <= 32 {

@@ -50,9 +50,7 @@ impl<'a> Scope<'a> {
             scope: self.in_contract(contract),
         }
     }
-}
 
-impl<'a> Scope<'a> {
     pub fn user_defined_item_ident(
         &self,
         ident: &Ident,

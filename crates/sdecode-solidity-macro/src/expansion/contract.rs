@@ -198,7 +198,11 @@ fn expand_storage_decode_impl(
             get_default_rust_type(&sc.in_contract(contract), &var.raw.ty)?
         };
 
-        let field_sol_ty = get_sol_storage_type(&sc.in_contract(contract), &var.raw.ty)?;
+        let field_sol_ty = get_sol_storage_type(
+            &sc.file.sdecode_solidity_sol_types(),
+            Some(&sc.in_contract(contract)),
+            &var.raw.ty,
+        )?;
 
         fields_decode.extend(quote! {
             let #field_name = <

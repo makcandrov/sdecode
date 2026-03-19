@@ -29,6 +29,15 @@ macro_rules! sol_storage {
     };
 }
 
+#[macro_export]
+macro_rules! sol_type {
+    ($($t:tt)*) => {
+        $crate::__private::sdecode_solidity_macro::sol_type_with_path! {
+            [$crate::sol_types] $($t)*
+        }
+    };
+}
+
 #[doc(hidden)]
 pub mod __private {
     #[doc(hidden)]
