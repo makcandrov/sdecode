@@ -213,7 +213,9 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for StoragePreimagesCache<P> 
 
 #[cfg(test)]
 mod tests {
-    use crate::{MemoryPreimagesProvider, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut};
+    use crate::{
+        MemoryPreimagesProvider, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut,
+    };
 
     use super::*;
 

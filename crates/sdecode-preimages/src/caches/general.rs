@@ -89,7 +89,7 @@ impl GeneralCache {
 }
 
 impl<P: PreimagesProviderMut> PreimagesCache<P> for GeneralCache {
-    fn new(provider: &mut P) -> Result<Self, P::Error> {
+    fn new_init(provider: &mut P) -> Result<Self, P::Error> {
         let mut cache = Self {
             preimages: BTreeMap::new(),
             explored: BTreeMap::new(),
@@ -181,7 +181,7 @@ mod tests {
         }
 
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = GeneralCache::new(&mut db_counter).unwrap();
+        let mut cache = GeneralCache::new_init(&mut db_counter).unwrap();
 
         const N: usize = 50;
         for _ in 0..N {
@@ -208,7 +208,7 @@ mod tests {
     fn test_general_cache_empty_provider() {
         let db = MemoryPreimagesProvider::new();
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = GeneralCache::new(&mut db_counter).unwrap();
+        let mut cache = GeneralCache::new_init(&mut db_counter).unwrap();
 
         for _ in 0..10 {
             let random_key = B256::random();
