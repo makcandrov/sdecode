@@ -7,10 +7,10 @@ use crate::{CachedProvider, PreimageEntry, PreimagesCache, PreimagesProviderMut,
 ///
 /// 16 bytes (128 bits) keeps collision probability below 2⁻³² for up to 2⁴⁸ preimages,
 /// which is safe for any practical dataset.
-pub const DEFAULT_PREFIX_LEN: usize = 16;
+pub const APPROX_CACHE_DEFAULT_PREFIX_LEN: usize = 16;
 
 /// A [`CachedProvider`] using an [`ApproxCache`] for approximate O(1) preimage lookups.
-pub type ApproxCachedProvider<P, const N: usize = DEFAULT_PREFIX_LEN> =
+pub type ApproxCachedProvider<P, const N: usize = APPROX_CACHE_DEFAULT_PREFIX_LEN> =
     CachedProvider<P, ApproxCache<N>>;
 
 /// A fast preimages cache that uses the first `N` bytes of an image as a hash-map key,
@@ -53,7 +53,7 @@ pub type ApproxCachedProvider<P, const N: usize = DEFAULT_PREFIX_LEN> =
 /// Choose `N` large enough for the expected dataset to make collisions negligible.
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
-pub struct ApproxCache<const N: usize = DEFAULT_PREFIX_LEN> {
+pub struct ApproxCache<const N: usize = APPROX_CACHE_DEFAULT_PREFIX_LEN> {
     /// Maps the first `N` bytes of a preimage's image to the full entry.
     cache: HashMap<FixedBytes<N>, PreimageEntry>,
     /// The smallest known image in the provider, used to short-circuit queries below it.

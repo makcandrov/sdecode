@@ -1,5 +1,5 @@
 mod approx;
-pub use approx::{ApproxCache, ApproxCachedProvider, DEFAULT_PREFIX_LEN};
+pub use approx::{ApproxCache, ApproxCachedProvider, APPROX_CACHE_DEFAULT_PREFIX_LEN};
 
 mod general;
 pub use general::{GeneralCache, GeneralCachedProvider};
