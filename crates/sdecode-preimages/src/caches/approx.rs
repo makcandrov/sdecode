@@ -1,11 +1,12 @@
 use alloy_primitives::{B256, FixedBytes};
 use hashbrown::HashMap;
 
-use crate::{PreimageEntry, PreimagesProviderMut, utils::B256_MAX};
+use crate::{CachedProvider, PreimageEntry, PreimagesCache, PreimagesProviderMut, utils::B256_MAX};
 
-use super::PreimagesCache;
+pub type ApproxCachedProvider<P, const N: usize> = CachedProvider<P, ApproxCache<N>>;
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct ApproxCache<const N: usize> {
     cache: HashMap<FixedBytes<N>, PreimageEntry>,
     min: B256,

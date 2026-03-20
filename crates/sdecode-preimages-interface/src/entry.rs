@@ -1,10 +1,7 @@
 use alloy_primitives::{B256, Bytes, KECCAK256_EMPTY, U256, keccak256};
 use quick_impl::quick_impl;
 
-use crate::utils::b256_to_u256;
-
-pub type Image = B256;
-pub type Preimage = Bytes;
+use crate::{Image, Preimage};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
@@ -42,12 +39,12 @@ impl PreimageEntry {
 
     /// ```rust
     /// # use ::alloy_primitives::keccak256;
-    /// # use ::sdecode_preimages::PreimageEntry;
-    /// let empty = PreimageEntry::empty();
-    ///
-    /// assert_eq!(empty.image(), keccak256(&[]));
-    /// assert!(empty.preimage().is_empty());
+    /// # use ::sdecode_preimages_interface::PreimageEntry;
+    /// const EMPTY: PreimageEntry = PreimageEntry::empty();
+    /// assert_eq!(EMPTY.image(), keccak256(&[]));
+    /// assert!(EMPTY.preimage().is_empty());
     /// ```
+    #[inline]
     pub const fn empty() -> Self {
         Self {
             image: KECCAK256_EMPTY,
@@ -55,19 +52,20 @@ impl PreimageEntry {
         }
     }
 
+    #[inline]
     pub fn new(preimage: Preimage) -> Self {
         let image = keccak256(&preimage);
         Self::new_unchecked(image, preimage)
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn new_unchecked(image: Image, preimage: Preimage) -> Self {
         debug_assert_eq!(image, keccak256(&preimage));
         Self { image, preimage }
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn image_u256(&self) -> U256 {
-        b256_to_u256(self.image())
+        U256::from_be_bytes(self.image().0)
     }
 }

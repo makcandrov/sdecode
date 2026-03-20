@@ -45,7 +45,7 @@ pub mod __private {
     pub use sdecode_core;
 
     #[doc(hidden)]
-    pub use sdecode_preimages;
+    pub use sdecode_preimages_interface;
 
     #[doc(hidden)]
     pub use sdecode_solidity_macro;

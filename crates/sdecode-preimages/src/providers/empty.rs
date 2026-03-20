@@ -3,6 +3,7 @@ use std::convert::Infallible;
 use crate::{Image, Preimage, PreimageEntry, PreimagesProvider};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct EmptyPreimagesProvider;
 
 impl EmptyPreimagesProvider {
