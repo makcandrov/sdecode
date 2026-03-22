@@ -238,14 +238,18 @@ fn expand_storage_decode_impl(
         impl #sdecode_core ::StorageDecode for #storage_structure_path {
             type LayoutError = #sdecode_solidity::SolLayoutError;
 
-            fn sdecode_mut<P, E>(
+            fn sdecode_mut<P>(
                 preimages_provider: &mut P,
-                storage_entries: E,
+                storage_entries: impl ::core::iter::IntoIterator<
+                    Item = (
+                        impl ::core::borrow::Borrow<#alloy_primitives::B256>,
+                        impl ::core::borrow::Borrow<#alloy_primitives::B256>,
+                    )
+                >,
             ) -> ::core::result::Result<Self, #sdecode_core ::StorageError<P::Error, Self::LayoutError>>
             where
                 P: #sdecode_preimages_interface ::PreimagesProviderMut,
-                E: ::core::iter::IntoIterator<Item = (#alloy_primitives::B256, #alloy_primitives::B256)>,
-            {
+           {
                 let side = #sdecode_core::MappingKeySide:: #language;
 
                 let mut layout = #sdecode_core ::Storage::decode_mut(preimages_provider, storage_entries, side)

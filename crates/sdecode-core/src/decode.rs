@@ -1,10 +1,9 @@
-use std::error::Error;
+use std::{borrow::Borrow, error::Error};
 
 use alloy_primitives::B256;
 use quick_impl::quick_impl_all;
 use sdecode_preimages::{
-    CachedProvider, PreimagesProvider, PreimagesProviderMut,
-    caches::StorageCache,
+    CachedProvider, PreimagesProvider, PreimagesProviderMut, caches::StorageCache,
 };
 
 use crate::MAX_STORAGE_OFFSET_U256;
@@ -12,18 +11,19 @@ use crate::MAX_STORAGE_OFFSET_U256;
 pub trait StorageDecode: Sized {
     type LayoutError: Error;
 
-    fn sdecode_mut<P, E>(
+    fn sdecode_mut<P>(
         preimages_provider: &mut P,
-        storage_entries: E,
+        storage_entries: impl IntoIterator<Item = (impl Borrow<B256>, impl Borrow<B256>)>,
     ) -> SdecodeMutResult<Self, P>
     where
-        P: PreimagesProviderMut,
-        E: IntoIterator<Item = (B256, B256)>;
+        P: PreimagesProviderMut;
 
-    fn sdecode<P, E>(preimages_provider: P, storage_entries: E) -> SdecodeResult<Self, P>
+    fn sdecode<P>(
+        preimages_provider: P,
+        storage_entries: impl IntoIterator<Item = (impl Borrow<B256>, impl Borrow<B256>)>,
+    ) -> SdecodeResult<Self, P>
     where
         P: PreimagesProvider,
-        E: IntoIterator<Item = (B256, B256)>,
     {
         let cache = StorageCache::new(MAX_STORAGE_OFFSET_U256);
         let mut cached_provider = CachedProvider::from_raw(preimages_provider, cache);

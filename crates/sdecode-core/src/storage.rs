@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, btree_map};
+use std::{
+    borrow::Borrow,
+    collections::{BTreeMap, btree_map},
+};
 
 use alloy_primitives::{B256, Bytes, U256};
 use overf::{checked, propagating, saturating};
@@ -19,7 +22,7 @@ pub struct Storage {
 impl Storage {
     pub fn decode<P: PreimagesProvider>(
         provider: P,
-        storage_entries: impl IntoIterator<Item = (B256, B256)>,
+        storage_entries: impl IntoIterator<Item = (impl Borrow<B256>, impl Borrow<B256>)>,
         side: MappingKeySide,
     ) -> Result<Self, P::Error> {
         Self::decode_mut(
@@ -31,13 +34,13 @@ impl Storage {
 
     pub fn decode_mut<P: PreimagesProviderMut>(
         provider: &mut P,
-        storage_entries: impl IntoIterator<Item = (B256, B256)>,
+        storage_entries: impl IntoIterator<Item = (impl Borrow<B256>, impl Borrow<B256>)>,
         side: MappingKeySide,
     ) -> Result<Self, P::Error> {
         let mut layout = Self::default();
 
         for (slot, value) in storage_entries {
-            let item = StorageItem::decode_mut(provider, side, slot, value)?;
+            let item = StorageItem::decode_mut(provider, side, *slot.borrow(), *value.borrow())?;
 
             match item.kind {
                 AnchorKind::UnknownPreimage { link } => match layout.anchors.entry(item.anchor) {
