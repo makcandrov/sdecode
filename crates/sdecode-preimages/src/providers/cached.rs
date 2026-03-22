@@ -3,8 +3,6 @@ use quick_impl::quick_impl;
 use crate::{Image, PreimageEntry, PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider};
 
 pub trait PreimagesCache<P: PreimagesProviderMut>: Sized {
-    fn new_init(provider: &mut P) -> Result<Self, P::Error>;
-
     fn nearest_lower_preimage_mut(
         &mut self,
         provider: &mut P,
@@ -16,6 +14,13 @@ pub trait PreimagesCache<P: PreimagesProviderMut>: Sized {
         provider: &mut P,
         image: Image,
     ) -> Result<Option<PreimageEntry>, P::Error>;
+}
+
+pub trait PreimagesCacheInit<P: PreimagesProviderMut>: PreimagesCache<P> {
+    type Params;
+    type InitError;
+
+    fn new_init(provider: &mut P, params: Self::Params) -> Result<Self, Self::InitError>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -33,13 +38,19 @@ where
     C: PreimagesCache<WrapPreimagesProvider<P>>,
 {
     #[inline]
-    pub fn new(provider: P) -> Result<Self, P::Error> {
-        Self::new_mut(WrapPreimagesProvider(provider))
-    }
-
-    #[inline]
     pub const fn from_raw(provider: P, cache: C) -> Self {
         Self::from_raw_mut(WrapPreimagesProvider(provider), cache)
+    }
+}
+
+impl<P, C> CachedProvider<WrapPreimagesProvider<P>, C>
+where
+    P: PreimagesProvider,
+    C: PreimagesCacheInit<WrapPreimagesProvider<P>>,
+{
+    #[inline]
+    pub fn new(provider: P, params: C::Params) -> Result<Self, C::InitError> {
+        Self::new_mut(WrapPreimagesProvider(provider), params)
     }
 }
 
@@ -49,14 +60,20 @@ where
     C: PreimagesCache<P>,
 {
     #[inline]
-    pub fn new_mut(mut provider: P) -> Result<Self, P::Error> {
-        let cache = C::new_init(&mut provider)?;
-        Ok(Self::from_raw_mut(provider, cache))
-    }
-
-    #[inline]
     pub const fn from_raw_mut(provider: P, cache: C) -> Self {
         Self { provider, cache }
+    }
+}
+
+impl<P, C> CachedProvider<P, C>
+where
+    P: PreimagesProviderMut,
+    C: PreimagesCacheInit<P>,
+{
+    #[inline]
+    pub fn new_mut(mut provider: P, params: C::Params) -> Result<Self, C::InitError> {
+        let cache = C::new_init(&mut provider, params)?;
+        Ok(Self::from_raw_mut(provider, cache))
     }
 }
 

@@ -1,10 +1,13 @@
 use std::error::Error;
 
-use alloy_primitives::{B256, U256};
+use alloy_primitives::B256;
 use quick_impl::quick_impl_all;
-use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, caches::StoragePreimagesCache};
+use sdecode_preimages::{
+    CachedProvider, PreimagesProvider, PreimagesProviderMut,
+    caches::StorageCache,
+};
 
-use crate::slot::MAX_STORAGE_OFFSET;
+use crate::MAX_STORAGE_OFFSET_U256;
 
 pub trait StorageDecode: Sized {
     type LayoutError: Error;
@@ -22,10 +25,9 @@ pub trait StorageDecode: Sized {
         P: PreimagesProvider,
         E: IntoIterator<Item = (B256, B256)>,
     {
-        Self::sdecode_mut(
-            &mut StoragePreimagesCache::new(preimages_provider, U256::from(MAX_STORAGE_OFFSET)),
-            storage_entries,
-        )
+        let cache = StorageCache::new(MAX_STORAGE_OFFSET_U256);
+        let mut cached_provider = CachedProvider::from_raw(preimages_provider, cache);
+        Self::sdecode_mut(&mut cached_provider, storage_entries)
     }
 }
 

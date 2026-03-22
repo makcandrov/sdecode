@@ -1,5 +1,5 @@
 mod cached;
-pub use cached::{CachedProvider, PreimagesCache};
+pub use cached::{CachedProvider, PreimagesCache, PreimagesCacheInit};
 
 mod empty;
 pub use empty::EmptyPreimagesProvider;

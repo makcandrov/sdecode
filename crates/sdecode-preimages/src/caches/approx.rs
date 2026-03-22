@@ -1,7 +1,10 @@
 use alloy_primitives::{B256, FixedBytes};
 use hashbrown::HashMap;
 
-use crate::{CachedProvider, PreimageEntry, PreimagesCache, PreimagesProviderMut, utils::B256_MAX};
+use crate::{
+    CachedProvider, PreimageEntry, PreimagesCache, PreimagesCacheInit, PreimagesProviderMut,
+    utils::B256_MAX,
+};
 
 /// Default number of image prefix bytes used as the cache key.
 ///
@@ -62,8 +65,8 @@ pub struct ApproxCache<const N: usize = APPROX_CACHE_DEFAULT_PREFIX_LEN> {
     max: B256,
 }
 
-impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<N> {
-    fn new_init(provider: &mut P) -> Result<Self, P::Error> {
+impl<const N: usize> ApproxCache<N> {
+    pub fn new<P: PreimagesProviderMut>(provider: &mut P) -> Result<Self, P::Error> {
         let min = provider
             .nearest_upper_preimage_mut(B256::ZERO)?
             .map(|entry| entry.image())
@@ -78,7 +81,18 @@ impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<
             max,
         })
     }
+}
 
+impl<const N: usize, P: PreimagesProviderMut> PreimagesCacheInit<P> for ApproxCache<N> {
+    type Params = ();
+    type InitError = P::Error;
+
+    fn new_init(provider: &mut P, (): ()) -> Result<Self, P::Error> {
+        Self::new(provider)
+    }
+}
+
+impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<N> {
     fn nearest_lower_preimage_mut(
         &mut self,
         provider: &mut P,
@@ -155,7 +169,7 @@ mod tests {
 
         // N=16 is very safe for 10 preimages (128 prefix bits, collision prob ~2⁻¹¹³).
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = ApproxCache::<16>::new_init(&mut db_counter).unwrap();
+        let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
 
         const QUERIES: usize = 50;
         for _ in 0..QUERIES {
@@ -182,7 +196,7 @@ mod tests {
     fn test_approx_cache_empty_provider() {
         let db = MemoryPreimagesProvider::new();
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = ApproxCache::<16>::new_init(&mut db_counter).unwrap();
+        let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
 
         for _ in 0..10 {
             let random_key = B256::random();
@@ -214,7 +228,7 @@ mod tests {
         }
 
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = ApproxCache::<16>::new_init(&mut db_counter).unwrap();
+        let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
 
         // First pass: query at exact preimage images to populate the cache.
         // These are guaranteed to share a prefix with the result, so the cache
@@ -246,7 +260,7 @@ mod tests {
         let image = db.insert(preimage);
 
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = ApproxCache::<16>::new_init(&mut db_counter).unwrap();
+        let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
         let accesses_after_init = db_counter.accesses();
 
         // Queries below min should return None without hitting the provider.

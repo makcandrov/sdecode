@@ -5,4 +5,4 @@ mod general;
 pub use general::{GeneralCache, GeneralCachedProvider};
 
 mod storage;
-pub use storage::StoragePreimagesCache;
+pub use storage::{STORAGE_CACHE_DEFAULT_MAX_DELTA, StorageCache, StorageCachedProvider};

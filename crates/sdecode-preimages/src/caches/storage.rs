@@ -1,15 +1,19 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, convert::Infallible};
 
 use alloy_primitives::{B256, U256};
 use overf::checked;
-use quick_impl::quick_impl;
 
 use crate::{
-    Image, PreimageEntry, PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider,
+    CachedProvider, Image, PreimageEntry, PreimagesCache, PreimagesCacheInit, PreimagesProviderMut,
     utils::b256_to_u256,
 };
 
-/// A highly efficient cache for a [`PreimagesProvider`], optimized for querying preimages
+pub const STORAGE_CACHE_DEFAULT_MAX_DELTA: U256 = U256::from_be_slice(&u32::MAX.to_be_bytes());
+
+/// A [`CachedProvider`] using a [`StorageCache`] for storage-optimized preimage caching.
+pub type StorageCachedProvider<P> = CachedProvider<P, StorageCache>;
+
+/// A highly efficient cache for a [`PreimagesCache`], optimized for querying preimages
 /// that are typically located just below the requested image.
 ///
 /// # Optimized use case
@@ -54,11 +58,7 @@ use crate::{
 /// acceptable because the primary use case (storage decoding) overwhelmingly queries
 /// nearest-lower.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[quick_impl]
-pub struct StoragePreimagesCache<P> {
-    #[quick_impl(pub get = "inner_{}", pub get_mut = "inner_{}_mut", pub into = "into_inner_{}")]
-    provider: P,
-
+pub struct StorageCache {
     /// Interval cache for nearest-lower-preimage queries.
     ///
     /// Each entry `(k, v)` means: for any query in `[k, k + max_delta]`, the nearest lower
@@ -71,18 +71,11 @@ pub struct StoragePreimagesCache<P> {
     /// Determines the size of cached intervals: each cache entry covers a window of
     /// `max_delta` values. Must be chosen so that no two preimages in the provider have
     /// images within `max_delta` of each other (the scattering assumption).
-    #[quick_impl(get_clone = "{}")]
     max_delta: U256,
 }
 
-impl<P: PreimagesProvider> StoragePreimagesCache<WrapPreimagesProvider<P>> {
-    pub fn new(preimages_provider: P, max_delta: U256) -> Self {
-        Self::new_mut(WrapPreimagesProvider(preimages_provider), max_delta)
-    }
-}
-
-impl<P: PreimagesProviderMut> StoragePreimagesCache<P> {
-    pub fn new_mut(preimages_provider: P, max_delta: U256) -> Self {
+impl StorageCache {
+    pub fn new(max_delta: U256) -> Self {
         let mut lower_cache = BTreeMap::new();
 
         // Sentinel at 0: for queries in [0, max_delta], nearest_lower = None.
@@ -96,20 +89,31 @@ impl<P: PreimagesProviderMut> StoragePreimagesCache<P> {
         lower_cache.insert(checked! { U256::MAX - max_delta }, None);
 
         Self {
-            provider: preimages_provider,
             lower_cache,
             max_delta,
         }
     }
+
+    pub fn max_delta(&self) -> U256 {
+        self.max_delta
+    }
 }
 
-impl<P: PreimagesProviderMut> PreimagesProviderMut for StoragePreimagesCache<P> {
-    type Error = P::Error;
+impl<P: PreimagesProviderMut> PreimagesCacheInit<P> for StorageCache {
+    type Params = U256;
+    type InitError = Infallible;
 
+    fn new_init(_provider: &mut P, max_delta: U256) -> Result<Self, Infallible> {
+        Ok(Self::new(max_delta))
+    }
+}
+
+impl<P: PreimagesProviderMut> PreimagesCache<P> for StorageCache {
     fn nearest_lower_preimage_mut(
         &mut self,
+        provider: &mut P,
         image: Image,
-    ) -> Result<Option<PreimageEntry>, Self::Error> {
+    ) -> Result<Option<PreimageEntry>, P::Error> {
         let image_u256 = b256_to_u256(image);
         let (cache_key, cache_entry) = self
             .lower_cache
@@ -125,7 +129,7 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for StoragePreimagesCache<P> 
         }
 
         // Cache miss: query the provider for the nearest lower preimage.
-        let provider_entry = self.provider.nearest_lower_preimage_mut(image)?;
+        let provider_entry = provider.nearest_lower_preimage_mut(image)?;
 
         let provider_key = provider_entry
             .as_ref()
@@ -158,9 +162,8 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for StoragePreimagesCache<P> 
             // Lookahead: query at image + max_delta to proactively discover and cache
             // the next preimage above the current query point.
             let next_image_u256 = image_u256.saturating_add(self.max_delta());
-            let next_provider_entry = self
-                .provider
-                .nearest_lower_preimage_mut(B256::from(next_image_u256))?;
+            let next_provider_entry =
+                provider.nearest_lower_preimage_mut(B256::from(next_image_u256))?;
 
             if let Some(next_provider_entry) = next_provider_entry {
                 let next_entry_image_u256 = next_provider_entry.image_u256();
@@ -205,23 +208,24 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for StoragePreimagesCache<P> 
     /// Upper queries bypass the cache entirely.
     fn nearest_upper_preimage_mut(
         &mut self,
+        provider: &mut P,
         image: Image,
-    ) -> Result<Option<PreimageEntry>, Self::Error> {
-        self.provider.nearest_upper_preimage_mut(image)
+    ) -> Result<Option<PreimageEntry>, P::Error> {
+        provider.nearest_upper_preimage_mut(image)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        MemoryPreimagesProvider, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut,
+        MemoryPreimagesProvider, Preimage, PreimagesProvider, PreimagesProviderMut,
+        misc::CounterPreimagesProviderMut,
     };
 
     use super::*;
 
     #[test]
     fn test_storage_preimages_cache() {
-        let max_delta = U256::from(0xffffffffffffusize);
         let mut db = MemoryPreimagesProvider::new();
 
         for _ in 0..10 {
@@ -229,7 +233,8 @@ mod tests {
         }
 
         let db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = StoragePreimagesCache::new_mut(db_counter, max_delta);
+        let mut cache =
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         const N: usize = 50;
         for _ in 0..N {
@@ -240,17 +245,17 @@ mod tests {
             assert_eq!(db_response, cache_response);
         }
 
-        let accesses = cache.inner_provider().accesses();
+        let accesses = cache.provider().accesses();
 
         println!("{N} cache queries\n{accesses} db accesses");
     }
 
     #[test]
     fn test_storage_cache_empty_provider() {
-        let max_delta = U256::from(0xffffffffffffusize);
         let db = MemoryPreimagesProvider::new();
         let db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = StoragePreimagesCache::new_mut(db_counter, max_delta);
+        let mut cache =
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         for _ in 0..10 {
             let random_key = B256::random();
@@ -260,7 +265,6 @@ mod tests {
 
     #[test]
     fn test_storage_cache_upper_delegates() {
-        let max_delta = U256::from(0xffffffffffffusize);
         let mut db = MemoryPreimagesProvider::new();
 
         for _ in 0..10 {
@@ -268,7 +272,8 @@ mod tests {
         }
 
         let db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = StoragePreimagesCache::new_mut(db_counter, max_delta);
+        let mut cache =
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         for _ in 0..10 {
             let random_key = B256::random();
@@ -278,12 +283,11 @@ mod tests {
         }
 
         // Every upper query hits the provider (uncached).
-        assert_eq!(cache.inner_provider().accesses(), 10);
+        assert_eq!(cache.provider().accesses(), 10);
     }
 
     #[test]
     fn test_storage_cache_nearby_queries_hit() {
-        let max_delta = U256::from(0xffffffffffffusize);
         let mut db = MemoryPreimagesProvider::new();
 
         for _ in 0..10 {
@@ -291,16 +295,17 @@ mod tests {
         }
 
         let db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = StoragePreimagesCache::new_mut(db_counter, max_delta);
+        let mut cache =
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         // Query at a random point to populate the cache.
         let base_key = B256::random();
         let _ = cache.nearest_lower_preimage_mut(base_key).unwrap();
-        let accesses_after_first = cache.inner_provider().accesses();
+        let accesses_after_first = cache.provider().accesses();
 
         // Query at the same point again — should be a cache hit.
         let response1 = cache.nearest_lower_preimage_mut(base_key).unwrap();
-        assert_eq!(cache.inner_provider().accesses(), accesses_after_first);
+        assert_eq!(cache.provider().accesses(), accesses_after_first);
 
         // Verify correctness.
         let db_response = db.nearest_lower_preimage(base_key).unwrap();

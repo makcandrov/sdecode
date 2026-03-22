@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, btree_map};
 
 use alloy_primitives::{B256, Bytes, U256};
 use overf::{checked, propagating, saturating};
-use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, caches::StoragePreimagesCache};
+use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, caches::StorageCachedProvider};
 
 use crate::{
     AnchorKind, MAX_STORAGE_OFFSET_U256, MappingKeySide, StorageItem, StorageNode, StorageReader,
@@ -23,7 +23,7 @@ impl Storage {
         side: MappingKeySide,
     ) -> Result<Self, P::Error> {
         Self::decode_mut(
-            &mut StoragePreimagesCache::new(provider, MAX_STORAGE_OFFSET_U256),
+            &mut StorageCachedProvider::new(provider, MAX_STORAGE_OFFSET_U256).unwrap(),
             storage_entries,
             side,
         )

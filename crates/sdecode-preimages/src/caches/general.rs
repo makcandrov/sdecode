@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use alloy_primitives::U256;
 
 use crate::{
-    CachedProvider, Image, PreimageEntry, PreimagesCache, PreimagesProviderMut,
+    CachedProvider, Image, PreimageEntry, PreimagesCache, PreimagesCacheInit, PreimagesProviderMut,
     utils::{B256_MAX, b256_to_u256},
 };
 
@@ -28,6 +28,34 @@ pub struct GeneralCache {
 }
 
 impl GeneralCache {
+    pub fn new<P: PreimagesProviderMut>(provider: &mut P) -> Result<Self, P::Error> {
+        let mut cache = Self {
+            preimages: BTreeMap::new(),
+            explored: BTreeMap::new(),
+        };
+
+        // Query boundary preimages to establish initial explored ranges.
+        let min_entry = provider.nearest_upper_preimage_mut(Image::ZERO)?;
+        let max_entry = provider.nearest_lower_preimage_mut(B256_MAX)?;
+
+        // [0, min_image] is explored: no preimages in [0, min_image).
+        let min_image = min_entry.as_ref().map_or(U256::MAX, |e| e.image_u256());
+        cache.add_explored(U256::ZERO, min_image);
+
+        // [max_image, MAX] is explored: no preimages in (max_image, MAX].
+        let max_image = max_entry.as_ref().map_or(U256::ZERO, |e| e.image_u256());
+        cache.add_explored(max_image, U256::MAX);
+
+        if let Some(entry) = min_entry {
+            cache.preimages.insert(entry.image_u256(), entry);
+        }
+        if let Some(entry) = max_entry {
+            cache.preimages.insert(entry.image_u256(), entry);
+        }
+
+        Ok(cache)
+    }
+
     /// Returns the explored range containing the point, if any.
     fn explored_range(&self, point: U256) -> Option<(U256, U256)> {
         self.explored
@@ -88,35 +116,16 @@ impl GeneralCache {
     }
 }
 
-impl<P: PreimagesProviderMut> PreimagesCache<P> for GeneralCache {
-    fn new_init(provider: &mut P) -> Result<Self, P::Error> {
-        let mut cache = Self {
-            preimages: BTreeMap::new(),
-            explored: BTreeMap::new(),
-        };
+impl<P: PreimagesProviderMut> PreimagesCacheInit<P> for GeneralCache {
+    type Params = ();
+    type InitError = P::Error;
 
-        // Query boundary preimages to establish initial explored ranges.
-        let min_entry = provider.nearest_upper_preimage_mut(Image::ZERO)?;
-        let max_entry = provider.nearest_lower_preimage_mut(B256_MAX)?;
-
-        // [0, min_image] is explored: no preimages in [0, min_image).
-        let min_image = min_entry.as_ref().map_or(U256::MAX, |e| e.image_u256());
-        cache.add_explored(U256::ZERO, min_image);
-
-        // [max_image, MAX] is explored: no preimages in (max_image, MAX].
-        let max_image = max_entry.as_ref().map_or(U256::ZERO, |e| e.image_u256());
-        cache.add_explored(max_image, U256::MAX);
-
-        if let Some(entry) = min_entry {
-            cache.preimages.insert(entry.image_u256(), entry);
-        }
-        if let Some(entry) = max_entry {
-            cache.preimages.insert(entry.image_u256(), entry);
-        }
-
-        Ok(cache)
+    fn new_init(provider: &mut P, (): ()) -> Result<Self, P::Error> {
+        Self::new(provider)
     }
+}
 
+impl<P: PreimagesProviderMut> PreimagesCache<P> for GeneralCache {
     fn nearest_lower_preimage_mut(
         &mut self,
         provider: &mut P,
@@ -181,7 +190,7 @@ mod tests {
         }
 
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = GeneralCache::new_init(&mut db_counter).unwrap();
+        let mut cache = GeneralCache::new_init(&mut db_counter, ()).unwrap();
 
         const N: usize = 50;
         for _ in 0..N {
@@ -208,7 +217,7 @@ mod tests {
     fn test_general_cache_empty_provider() {
         let db = MemoryPreimagesProvider::new();
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
-        let mut cache = GeneralCache::new_init(&mut db_counter).unwrap();
+        let mut cache = GeneralCache::new_init(&mut db_counter, ()).unwrap();
 
         for _ in 0..10 {
             let random_key = B256::random();
