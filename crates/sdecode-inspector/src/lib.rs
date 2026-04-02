@@ -14,8 +14,14 @@ use revm_interpreter::{
 };
 use sdecode_preimages::{Image, MemoryPreimagesProvider, Preimage};
 
-/// Preimages inspector.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+/// An EVM inspector that captures Keccak256 preimages during transaction execution.
+///
+/// This inspector hooks into the EVM execution to record the input data (preimage) for every
+/// `KECCAK256` opcode. The collected preimages can then be converted into a
+/// [`MemoryPreimagesProvider`] for later use in storage decoding.
+///
+/// Inspection can be scoped to specific contract addresses using [`InspectorTargets`].
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[quick_impl]
 pub struct PreimagesInspector {
     unconfirmed: Option<(U256, U256)>,
@@ -27,18 +33,33 @@ pub struct PreimagesInspector {
     targets: InspectorTargets,
 }
 
+impl Default for PreimagesInspector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Controls which contract addresses should have their Keccak256 operations tracked.
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[quick_impl_all(pub const is)]
 pub enum InspectorTargets {
+    /// Inspect all contracts. This is the default.
     #[default]
     All,
+
+    /// Inspect all contracts except the ones in this set.
     #[quick_impl(pub as_ref, pub as_ref_mut, pub into, pub try_into)]
     Exclude(BTreeSet<Address>),
+
+    /// Inspect only the contracts in this set.
     #[quick_impl(pub as_ref, pub as_ref_mut, pub into, pub try_into)]
     IncludeOnly(BTreeSet<Address>),
 }
 
 impl InspectorTargets {
+    /// Returns `true` if the given address should be inspected.
+    #[inline]
+    #[must_use]
     pub fn should_inspect(&self, target: &Address) -> bool {
         match self {
             Self::All => true,
@@ -47,6 +68,9 @@ impl InspectorTargets {
         }
     }
 
+    /// Returns `true` if the given address should **not** be inspected.
+    #[inline]
+    #[must_use]
     pub fn should_not_inspect(&self, target: &Address) -> bool {
         match self {
             Self::All => false,
@@ -55,10 +79,14 @@ impl InspectorTargets {
         }
     }
 
+    /// Creates an [`Exclude`](Self::Exclude) target from the given addresses.
+    #[must_use]
     pub fn exclude(targets: impl IntoIterator<Item = Address>) -> Self {
         Self::Exclude(targets.into_iter().collect())
     }
 
+    /// Creates an [`IncludeOnly`](Self::IncludeOnly) target from the given addresses.
+    #[must_use]
     pub fn include_only(targets: impl IntoIterator<Item = Address>) -> Self {
         Self::IncludeOnly(targets.into_iter().collect())
     }
@@ -123,11 +151,15 @@ where
 }
 
 impl PreimagesInspector {
-    /// Creates an empty [`PreimagesInspector`].
+    /// Creates a new [`PreimagesInspector`] that inspects all contracts.
+    #[inline]
+    #[must_use]
     pub fn new() -> Self {
         Self::new_with_target(InspectorTargets::All)
     }
 
+    /// Creates a new [`PreimagesInspector`] with the given [`InspectorTargets`].
+    #[must_use]
     pub fn new_with_target(targets: InspectorTargets) -> Self {
         Self {
             unconfirmed: None,
@@ -136,24 +168,42 @@ impl PreimagesInspector {
         }
     }
 
+    /// Clears the collected preimages.
+    #[inline]
+    pub fn clear(&mut self) {
+        self.unconfirmed = None;
+        self.preimages.clear();
+    }
+
+    /// Creates a new [`PreimagesInspector`] that inspects all contracts except the given ones.
+    #[must_use]
     pub fn new_excluding(targets: impl IntoIterator<Item = Address>) -> Self {
         Self::new_with_target(InspectorTargets::exclude(targets))
     }
 
+    /// Creates a new [`PreimagesInspector`] that only inspects the given contracts.
+    #[must_use]
     pub fn new_including_only(targets: impl IntoIterator<Item = Address>) -> Self {
         Self::new_with_target(InspectorTargets::include_only(targets))
     }
 
+    /// Consumes this inspector and returns a [`MemoryPreimagesProvider`] from the collected
+    /// preimages.
+    #[inline]
+    #[must_use]
     pub fn into_provider(self) -> MemoryPreimagesProvider {
         MemoryPreimagesProvider::from_iter_unchecked(self.into_preimages())
     }
 }
 
+/// Trait for EVM stacks that support peeking at values without popping them.
 pub trait PeekableStack: StackTr {
+    /// Returns the value at `no_from_top` positions from the top of the stack.
     fn peek(&self, no_from_top: usize) -> Result<U256, InstructionResult>;
 }
 
 impl PeekableStack for Stack {
+    #[inline]
     fn peek(&self, no_from_top: usize) -> Result<U256, InstructionResult> {
         self.peek(no_from_top)
     }
