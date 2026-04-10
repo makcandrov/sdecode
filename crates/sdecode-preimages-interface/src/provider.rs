@@ -38,6 +38,14 @@ pub trait PreimagesProvider {
             Ok(None)
         }
     }
+
+    /// Returns `true` if the provider contains no preimage entries.
+    ///
+    /// The default implementation delegates to
+    /// [`nearest_upper_preimage`](Self::nearest_upper_preimage) starting from `Image::ZERO`.
+    fn is_empty(&self) -> Result<bool, Self::Error> {
+        Ok(self.nearest_upper_preimage(&Image::ZERO)?.is_none())
+    }
 }
 
 /// Mutable provider for looking up keccak256 preimages.
@@ -75,6 +83,15 @@ pub trait PreimagesProviderMut {
             Ok(None)
         }
     }
+
+    /// Returns `true` if the provider contains no preimage entries.
+    ///
+    /// The default implementation delegates to
+    /// [`nearest_upper_preimage_mut`](Self::nearest_upper_preimage_mut) starting from
+    /// `Image::ZERO`.
+    fn is_empty(&mut self) -> Result<bool, Self::Error> {
+        Ok(self.nearest_upper_preimage_mut(&Image::ZERO)?.is_none())
+    }
 }
 
 /// Wraps a [`PreimagesProvider`] to implement [`PreimagesProviderMut`].
@@ -95,7 +112,7 @@ impl<P> WrapPreimagesProvider<P> {
 impl<P: PreimagesProvider> PreimagesProviderMut for WrapPreimagesProvider<P> {
     type Error = P::Error;
 
-    #[inline(always)]
+    #[inline]
     fn nearest_lower_preimage_mut(
         &mut self,
         image: &Image,
@@ -103,11 +120,21 @@ impl<P: PreimagesProvider> PreimagesProviderMut for WrapPreimagesProvider<P> {
         self.0.nearest_lower_preimage(image)
     }
 
-    #[inline(always)]
+    #[inline]
     fn nearest_upper_preimage_mut(
         &mut self,
         image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         self.0.nearest_upper_preimage(image)
+    }
+
+    #[inline]
+    fn exact_preimage_mut(&mut self, image: &Image) -> Result<Option<Preimage>, Self::Error> {
+        self.0.exact_preimage(image)
+    }
+
+    #[inline]
+    fn is_empty(&mut self) -> Result<bool, Self::Error> {
+        self.0.is_empty()
     }
 }

@@ -131,6 +131,14 @@ impl PreimagesProvider for MemoryPreimagesProvider {
             .min()
             .map(|(image, preimage)| PreimageEntry::new_unchecked(*image, preimage.clone())))
     }
+
+    fn exact_preimage(&self, image: &Image) -> Result<Option<Preimage>, Self::Error> {
+        Ok(self.preimages.get(image).cloned())
+    }
+
+    fn is_empty(&self) -> Result<bool, Self::Error> {
+        Ok(self.preimages.is_empty())
+    }
 }
 
 impl PreimagesProviderMut for MemoryPreimagesProvider {

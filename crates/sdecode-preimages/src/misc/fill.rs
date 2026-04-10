@@ -14,6 +14,7 @@ pub struct PreimagesProviderFiller<P> {
     #[quick_impl(pub get = "{}", pub into)]
     result: MemoryPreimagesProvider,
 }
+
 impl<P: PreimagesProvider> PreimagesProviderFiller<WrapPreimagesProvider<P>> {
     pub const fn new(preimages_provider: P) -> Self {
         Self::new_mut(WrapPreimagesProvider(preimages_provider))

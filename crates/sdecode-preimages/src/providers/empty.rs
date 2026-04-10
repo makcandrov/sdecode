@@ -26,4 +26,8 @@ impl PreimagesProvider for EmptyPreimagesProvider {
     fn exact_preimage(&self, _: &Image) -> Result<Option<Preimage>, Self::Error> {
         Ok(None)
     }
+
+    fn is_empty(&self) -> Result<bool, Self::Error> {
+        Ok(true)
+    }
 }
