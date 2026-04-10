@@ -33,4 +33,5 @@ serde = [
     "dep:serde",
     "serde/derive",
     "alloy-primitives/serde",
+    "hashbrown/serde",
 ]
