@@ -1,7 +1,7 @@
 use quick_impl::quick_impl;
 
 use crate::{
-    Image, MemoryPreimagesProvider, PreimageEntry, PreimagesProvider, PreimagesProviderMut,
+    Image, InMemoryPreimages, PreimageEntry, PreimagesProvider, PreimagesProviderMut,
     WrapPreimagesProvider,
 };
 
@@ -12,7 +12,7 @@ pub struct PreimagesProviderFiller<P> {
     provider: P,
 
     #[quick_impl(pub get = "{}", pub into)]
-    result: MemoryPreimagesProvider,
+    result: InMemoryPreimages,
 }
 
 impl<P: PreimagesProvider> PreimagesProviderFiller<WrapPreimagesProvider<P>> {
@@ -25,7 +25,7 @@ impl<P: PreimagesProviderMut> PreimagesProviderFiller<P> {
     pub const fn new_mut(preimages_provider: P) -> Self {
         Self {
             provider: preimages_provider,
-            result: MemoryPreimagesProvider::new(),
+            result: InMemoryPreimages::new(),
         }
     }
 }

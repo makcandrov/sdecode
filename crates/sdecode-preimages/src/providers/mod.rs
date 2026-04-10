@@ -5,4 +5,4 @@ mod empty;
 pub use empty::EmptyPreimagesProvider;
 
 mod memory;
-pub use memory::MemoryPreimagesProvider;
+pub use memory::InMemoryPreimages;

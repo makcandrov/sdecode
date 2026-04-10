@@ -176,14 +176,14 @@ mod tests {
     use alloy_primitives::B256;
 
     use crate::{
-        MemoryPreimagesProvider, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut,
+        InMemoryPreimages, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut,
     };
 
     use super::*;
 
     #[test]
     fn test_general_cache() {
-        let mut db = MemoryPreimagesProvider::new();
+        let mut db = InMemoryPreimages::new();
 
         for _ in 0..10 {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
@@ -215,7 +215,7 @@ mod tests {
 
     #[test]
     fn test_general_cache_empty_provider() {
-        let db = MemoryPreimagesProvider::new();
+        let db = InMemoryPreimages::new();
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
         let mut cache = GeneralCache::new_init(&mut db_counter, ()).unwrap();
 

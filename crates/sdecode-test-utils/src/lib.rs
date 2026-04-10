@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use alloy_primitives::{Address, BlockNumber, ChainId};
-use sdecode::{SdecodeResult, StorageDecode, StorageEntries, preimages::MemoryPreimagesProvider};
+use sdecode::{SdecodeResult, StorageDecode, StorageEntries, preimages::InMemoryPreimages};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct SdecodeTestContract {
@@ -9,11 +9,11 @@ pub struct SdecodeTestContract {
     pub address: Address,
     pub block: BlockNumber,
     pub storage: StorageEntries,
-    pub preimages: MemoryPreimagesProvider,
+    pub preimages: InMemoryPreimages,
 }
 
 impl SdecodeTestContract {
-    pub fn decode<T: StorageDecode>(self) -> SdecodeResult<T, MemoryPreimagesProvider> {
+    pub fn decode<T: StorageDecode>(self) -> SdecodeResult<T, InMemoryPreimages> {
         T::sdecode(self.preimages, self.storage)
     }
 }

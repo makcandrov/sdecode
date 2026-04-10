@@ -153,15 +153,14 @@ mod tests {
     use alloy_primitives::B256;
 
     use crate::{
-        Image, MemoryPreimagesProvider, Preimage, PreimagesProvider,
-        misc::CounterPreimagesProviderMut,
+        Image, InMemoryPreimages, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut,
     };
 
     use super::*;
 
     #[test]
     fn test_approx_cache() {
-        let mut db = MemoryPreimagesProvider::new();
+        let mut db = InMemoryPreimages::new();
 
         for _ in 0..10 {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
@@ -194,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_approx_cache_empty_provider() {
-        let db = MemoryPreimagesProvider::new();
+        let db = InMemoryPreimages::new();
         let mut db_counter = CounterPreimagesProviderMut::new(&db);
         let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
 
@@ -220,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_approx_cache_hits_on_known_images() {
-        let mut db = MemoryPreimagesProvider::new();
+        let mut db = InMemoryPreimages::new();
 
         let mut images = Vec::new();
         for _ in 0..10 {
@@ -253,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_approx_cache_below_min_above_max() {
-        let mut db = MemoryPreimagesProvider::new();
+        let mut db = InMemoryPreimages::new();
 
         // Insert a single preimage so min == max == its image.
         let preimage = Preimage::copy_from_slice(&Image::random().0);

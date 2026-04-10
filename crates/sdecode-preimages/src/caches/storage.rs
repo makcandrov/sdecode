@@ -218,7 +218,7 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for StorageCache {
 #[cfg(test)]
 mod tests {
     use crate::{
-        MemoryPreimagesProvider, Preimage, PreimagesProvider, PreimagesProviderMut,
+        InMemoryPreimages, Preimage, PreimagesProvider, PreimagesProviderMut,
         misc::CounterPreimagesProviderMut,
     };
 
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn test_storage_preimages_cache() {
-        let mut db = MemoryPreimagesProvider::new();
+        let mut db = InMemoryPreimages::new();
 
         for _ in 0..10 {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
@@ -252,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_storage_cache_empty_provider() {
-        let db = MemoryPreimagesProvider::new();
+        let db = InMemoryPreimages::new();
         let db_counter = CounterPreimagesProviderMut::new(&db);
         let mut cache =
             StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
@@ -265,7 +265,7 @@ mod tests {
 
     #[test]
     fn test_storage_cache_upper_delegates() {
-        let mut db = MemoryPreimagesProvider::new();
+        let mut db = InMemoryPreimages::new();
 
         for _ in 0..10 {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn test_storage_cache_nearby_queries_hit() {
-        let mut db = MemoryPreimagesProvider::new();
+        let mut db = InMemoryPreimages::new();
 
         for _ in 0..10 {
             db.insert(Preimage::copy_from_slice(&Image::random().0));

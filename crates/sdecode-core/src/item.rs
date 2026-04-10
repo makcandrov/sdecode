@@ -102,13 +102,13 @@ impl StorageItem {
 #[cfg(test)]
 mod tests {
     use alloy_primitives::{b256, bytes};
-    use sdecode_preimages::MemoryPreimagesProvider;
+    use sdecode_preimages::InMemoryPreimages;
 
     use super::*;
 
     #[test]
     fn test_layout_item() {
-        let mut provider = MemoryPreimagesProvider::new();
+        let mut provider = InMemoryPreimages::new();
         assert_eq!(
             provider.insert(bytes!("0x000000000000000000000000f228183dde65b6a36f5382693636c2ddaadb87a9c7fe799710c4d03c47be714190f54817f9938592f8110a8fc890f12b138782ab")),
             b256!("0x826be66ee1ebb76116a8d7b90e41b55fb5738ec81b19a4ffd22fed7cf95c28f3"),

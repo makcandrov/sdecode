@@ -12,7 +12,7 @@ use revm_interpreter::{
     InstructionResult, Interpreter, InterpreterTypes, Stack,
     interpreter_types::{InputsTr, Jumps, LoopControl, MemoryTr, StackTr},
 };
-use sdecode_preimages::{Image, MemoryPreimagesProvider, Preimage};
+use sdecode_preimages::{Image, InMemoryPreimages, Preimage};
 
 /// An EVM inspector that captures Keccak256 preimages during transaction execution.
 ///
@@ -191,8 +191,8 @@ impl PreimagesInspector {
     /// preimages.
     #[inline]
     #[must_use]
-    pub fn into_provider(self) -> MemoryPreimagesProvider {
-        MemoryPreimagesProvider::from_iter_unchecked(self.into_preimages())
+    pub fn into_provider(self) -> InMemoryPreimages {
+        InMemoryPreimages::from_iter_unchecked(self.into_preimages())
     }
 }
 

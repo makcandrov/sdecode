@@ -8,8 +8,7 @@ pub mod misc;
 
 mod providers;
 pub use providers::{
-    CachedProvider, EmptyPreimagesProvider, MemoryPreimagesProvider, PreimagesCache,
-    PreimagesCacheInit,
+    CachedProvider, EmptyPreimagesProvider, InMemoryPreimages, PreimagesCache, PreimagesCacheInit,
 };
 
 mod utils;

@@ -13,12 +13,12 @@ use crate::{Image, Preimage, PreimageEntry, PreimagesProvider};
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 #[quick_impl(impl From, impl Into)]
-pub struct MemoryPreimagesProvider {
+pub struct InMemoryPreimages {
     #[cfg_attr(feature = "serde", serde(flatten))]
     preimages: BTreeMap<Image, Preimage>,
 }
 
-impl MemoryPreimagesProvider {
+impl InMemoryPreimages {
     #[inline]
     pub const fn new() -> Self {
         Self {
@@ -82,7 +82,7 @@ impl MemoryPreimagesProvider {
     }
 }
 
-impl FromIterator<PreimageEntry> for MemoryPreimagesProvider {
+impl FromIterator<PreimageEntry> for InMemoryPreimages {
     fn from_iter<T: IntoIterator<Item = PreimageEntry>>(iter: T) -> Self {
         Self {
             preimages: iter.into_iter().map(PreimageEntry::into_parts).collect(),
@@ -90,13 +90,13 @@ impl FromIterator<PreimageEntry> for MemoryPreimagesProvider {
     }
 }
 
-impl<'a> FromIterator<&'a PreimageEntry> for MemoryPreimagesProvider {
+impl<'a> FromIterator<&'a PreimageEntry> for InMemoryPreimages {
     fn from_iter<T: IntoIterator<Item = &'a PreimageEntry>>(iter: T) -> Self {
         iter.into_iter().cloned().collect()
     }
 }
 
-impl IntoIterator for MemoryPreimagesProvider {
+impl IntoIterator for InMemoryPreimages {
     type Item = PreimageEntry;
 
     type IntoIter = std::iter::Map<
@@ -113,7 +113,7 @@ impl IntoIterator for MemoryPreimagesProvider {
     }
 }
 
-impl PreimagesProvider for MemoryPreimagesProvider {
+impl PreimagesProvider for InMemoryPreimages {
     type Error = Infallible;
 
     fn nearest_lower_preimage(&self, image: &Image) -> Result<Option<PreimageEntry>, Self::Error> {
@@ -141,7 +141,7 @@ impl PreimagesProvider for MemoryPreimagesProvider {
     }
 }
 
-impl PreimagesProviderMut for MemoryPreimagesProvider {
+impl PreimagesProviderMut for InMemoryPreimages {
     type Error = Infallible;
 
     fn nearest_lower_preimage_mut(
@@ -159,7 +159,7 @@ impl PreimagesProviderMut for MemoryPreimagesProvider {
     }
 }
 
-impl PreimagesWriterMut for MemoryPreimagesProvider {
+impl PreimagesWriterMut for InMemoryPreimages {
     type Error = Infallible;
 
     fn write_preimages_mut<'a>(
