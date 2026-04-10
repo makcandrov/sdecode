@@ -12,11 +12,15 @@ pub type Image = alloy_primitives::B256;
 /// The raw bytes whose keccak256 hash produces an [`Image`].
 pub type Preimage = alloy_primitives::Bytes;
 
+
+mod entry;
+pub use entry::PreimageEntry;
+
 mod provider;
 pub use provider::{
     BoxedPreimagesProvider, BoxedPreimagesProviderMut, PreimagesProvider, PreimagesProviderMut,
     WrapPreimagesProvider,
 };
 
-mod entry;
-pub use entry::PreimageEntry;
+mod writer;
+pub use writer::{PreimagesWriter, PreimagesWriterMut, WrapPreimagesWriter};
