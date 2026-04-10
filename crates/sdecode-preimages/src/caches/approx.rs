@@ -2,7 +2,7 @@ use alloy_primitives::{B256, FixedBytes};
 use hashbrown::HashMap;
 
 use crate::{
-    CachedProvider, PreimageEntry, PreimagesCache, PreimagesCacheInit, PreimagesProviderMut,
+    CachedProvider, Image, PreimageEntry, PreimagesCache, PreimagesCacheInit, PreimagesProviderMut,
     utils::B256_MAX,
 };
 
@@ -68,11 +68,11 @@ pub struct ApproxCache<const N: usize = APPROX_CACHE_DEFAULT_PREFIX_LEN> {
 impl<const N: usize> ApproxCache<N> {
     pub fn new<P: PreimagesProviderMut>(provider: &mut P) -> Result<Self, P::Error> {
         let min = provider
-            .nearest_upper_preimage_mut(B256::ZERO)?
+            .nearest_upper_preimage_mut(&B256::ZERO)?
             .map(|entry| entry.image())
             .unwrap_or(B256_MAX);
         let max = provider
-            .nearest_lower_preimage_mut(B256_MAX)?
+            .nearest_lower_preimage_mut(&B256_MAX)?
             .map(|entry| entry.image())
             .unwrap_or(B256::ZERO);
         Ok(Self {
@@ -96,9 +96,9 @@ impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<
     fn nearest_lower_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: crate::Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, <P as PreimagesProviderMut>::Error> {
-        if image < self.min {
+        if image < &self.min {
             return Ok(None);
         }
         if let Some(entry) = self.cache.get(&image[..N]) {
@@ -106,7 +106,7 @@ impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<
             // must be at or below the query image to be a valid nearest-lower result.
             // If it's above, two preimages share a prefix — N is too small.
             assert!(
-                entry.image() <= image,
+                entry.image_ref() <= image,
                 "prefix collision detected: cached entry is above the query, chosen N ({N}) is too small",
             );
             Ok(Some(entry.clone()))
@@ -123,9 +123,9 @@ impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<
     fn nearest_upper_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: crate::Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, <P as PreimagesProviderMut>::Error> {
-        if image > self.max {
+        if image > &self.max {
             return Ok(None);
         }
         if let Some(entry) = self.cache.get(&image[..N]) {
@@ -133,7 +133,7 @@ impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<
             // must be at or above the query image to be a valid nearest-upper result.
             // If it's below, two preimages share a prefix — N is too small.
             assert!(
-                entry.image() >= image,
+                entry.image_ref() >= image,
                 "prefix collision detected: cached entry is below the query, chosen N ({N}) is too small",
             );
             Ok(Some(entry.clone()))
@@ -175,15 +175,15 @@ mod tests {
         for _ in 0..QUERIES {
             let random_key = B256::random();
 
-            let db_lower = db.nearest_lower_preimage(random_key).unwrap();
+            let db_lower = db.nearest_lower_preimage(&random_key).unwrap();
             let cache_lower = cache
-                .nearest_lower_preimage_mut(&mut db_counter, random_key)
+                .nearest_lower_preimage_mut(&mut db_counter, &random_key)
                 .unwrap();
             assert_eq!(db_lower, cache_lower);
 
-            let db_upper = db.nearest_upper_preimage(random_key).unwrap();
+            let db_upper = db.nearest_upper_preimage(&random_key).unwrap();
             let cache_upper = cache
-                .nearest_upper_preimage_mut(&mut db_counter, random_key)
+                .nearest_upper_preimage_mut(&mut db_counter, &random_key)
                 .unwrap();
             assert_eq!(db_upper, cache_upper);
         }
@@ -202,13 +202,13 @@ mod tests {
             let random_key = B256::random();
             assert_eq!(
                 cache
-                    .nearest_lower_preimage_mut(&mut db_counter, random_key)
+                    .nearest_lower_preimage_mut(&mut db_counter, &random_key)
                     .unwrap(),
                 None,
             );
             assert_eq!(
                 cache
-                    .nearest_upper_preimage_mut(&mut db_counter, random_key)
+                    .nearest_upper_preimage_mut(&mut db_counter, &random_key)
                     .unwrap(),
                 None,
             );
@@ -235,7 +235,7 @@ mod tests {
         // stores entries under the same key that future lookups will use.
         for &image in &images {
             cache
-                .nearest_lower_preimage_mut(&mut db_counter, image)
+                .nearest_lower_preimage_mut(&mut db_counter, &image)
                 .unwrap();
         }
 
@@ -244,7 +244,7 @@ mod tests {
         // Second pass with the same images: all cache hits.
         for &image in &images {
             cache
-                .nearest_lower_preimage_mut(&mut db_counter, image)
+                .nearest_lower_preimage_mut(&mut db_counter, &image)
                 .unwrap();
         }
 
@@ -268,7 +268,7 @@ mod tests {
             let below = B256::ZERO;
             assert_eq!(
                 cache
-                    .nearest_lower_preimage_mut(&mut db_counter, below)
+                    .nearest_lower_preimage_mut(&mut db_counter, &below)
                     .unwrap(),
                 None,
             );
@@ -279,7 +279,7 @@ mod tests {
             let above = B256_MAX;
             assert_eq!(
                 cache
-                    .nearest_upper_preimage_mut(&mut db_counter, above)
+                    .nearest_upper_preimage_mut(&mut db_counter, &above)
                     .unwrap(),
                 None,
             );

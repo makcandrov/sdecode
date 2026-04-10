@@ -34,7 +34,7 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for PreimagesProviderFiller<P
 
     fn nearest_lower_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         let entry = self.provider.nearest_lower_preimage_mut(image)?;
         if let Some(entry) = &entry {
@@ -46,7 +46,7 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for PreimagesProviderFiller<P
 
     fn nearest_upper_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         let entry = self.provider.nearest_upper_preimage_mut(image)?;
         if let Some(entry) = &entry {

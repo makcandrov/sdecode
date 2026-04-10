@@ -64,7 +64,7 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for CounterPreimagesProviderM
 
     fn nearest_lower_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         checked! { self.accesses += 1 };
         self.provider.nearest_lower_preimage_mut(image)
@@ -72,7 +72,7 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for CounterPreimagesProviderM
 
     fn nearest_upper_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         checked! { self.accesses += 1 };
         self.provider.nearest_upper_preimage_mut(image)
@@ -82,12 +82,12 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for CounterPreimagesProviderM
 impl<P: PreimagesProvider> PreimagesProvider for CounterPreimagesProvider<P> {
     type Error = P::Error;
 
-    fn nearest_lower_preimage(&self, image: Image) -> Result<Option<PreimageEntry>, Self::Error> {
+    fn nearest_lower_preimage(&self, image: &Image) -> Result<Option<PreimageEntry>, Self::Error> {
         self.accesses.fetch_add(1, Ordering::Relaxed);
         self.provider.nearest_lower_preimage(image)
     }
 
-    fn nearest_upper_preimage(&self, image: Image) -> Result<Option<PreimageEntry>, Self::Error> {
+    fn nearest_upper_preimage(&self, image: &Image) -> Result<Option<PreimageEntry>, Self::Error> {
         self.accesses.fetch_add(1, Ordering::Relaxed);
         self.provider.nearest_upper_preimage(image)
     }

@@ -98,18 +98,18 @@ impl<'a> FromIterator<&'a PreimageEntry> for MemoryPreimagesProvider {
 impl PreimagesProvider for MemoryPreimagesProvider {
     type Error = Infallible;
 
-    fn nearest_lower_preimage(&self, image: Image) -> Result<Option<PreimageEntry>, Self::Error> {
+    fn nearest_lower_preimage(&self, image: &Image) -> Result<Option<PreimageEntry>, Self::Error> {
         Ok(self
             .preimages
-            .range(..=image)
+            .range(..=*image)
             .max()
             .map(|(image, preimage)| PreimageEntry::new_unchecked(*image, preimage.clone())))
     }
 
-    fn nearest_upper_preimage(&self, image: Image) -> Result<Option<PreimageEntry>, Self::Error> {
+    fn nearest_upper_preimage(&self, image: &Image) -> Result<Option<PreimageEntry>, Self::Error> {
         Ok(self
             .preimages
-            .range(image..)
+            .range(*image..)
             .min()
             .map(|(image, preimage)| PreimageEntry::new_unchecked(*image, preimage.clone())))
     }

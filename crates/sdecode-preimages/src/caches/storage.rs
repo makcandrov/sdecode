@@ -112,9 +112,9 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for StorageCache {
     fn nearest_lower_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, P::Error> {
-        let image_u256 = b256_to_u256(image);
+        let image_u256 = b256_to_u256(*image);
         let (cache_key, cache_entry) = self
             .lower_cache
             .range(..=image_u256)
@@ -163,7 +163,7 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for StorageCache {
             // the next preimage above the current query point.
             let next_image_u256 = image_u256.saturating_add(self.max_delta());
             let next_provider_entry =
-                provider.nearest_lower_preimage_mut(B256::from(next_image_u256))?;
+                provider.nearest_lower_preimage_mut(&B256::from(next_image_u256))?;
 
             if let Some(next_provider_entry) = next_provider_entry {
                 let next_entry_image_u256 = next_provider_entry.image_u256();
@@ -209,7 +209,7 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for StorageCache {
     fn nearest_upper_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, P::Error> {
         provider.nearest_upper_preimage_mut(image)
     }
@@ -239,8 +239,8 @@ mod tests {
         const N: usize = 50;
         for _ in 0..N {
             let random_key = B256::random();
-            let db_response = db.nearest_lower_preimage(random_key).unwrap();
-            let cache_response = cache.nearest_lower_preimage_mut(random_key).unwrap();
+            let db_response = db.nearest_lower_preimage(&random_key).unwrap();
+            let cache_response = cache.nearest_lower_preimage_mut(&random_key).unwrap();
 
             assert_eq!(db_response, cache_response);
         }
@@ -259,7 +259,7 @@ mod tests {
 
         for _ in 0..10 {
             let random_key = B256::random();
-            assert_eq!(cache.nearest_lower_preimage_mut(random_key).unwrap(), None);
+            assert_eq!(cache.nearest_lower_preimage_mut(&random_key).unwrap(), None);
         }
     }
 
@@ -277,8 +277,8 @@ mod tests {
 
         for _ in 0..10 {
             let random_key = B256::random();
-            let db_response = db.nearest_upper_preimage(random_key).unwrap();
-            let cache_response = cache.nearest_upper_preimage_mut(random_key).unwrap();
+            let db_response = db.nearest_upper_preimage(&random_key).unwrap();
+            let cache_response = cache.nearest_upper_preimage_mut(&random_key).unwrap();
             assert_eq!(db_response, cache_response);
         }
 
@@ -300,15 +300,15 @@ mod tests {
 
         // Query at a random point to populate the cache.
         let base_key = B256::random();
-        let _ = cache.nearest_lower_preimage_mut(base_key).unwrap();
+        let _ = cache.nearest_lower_preimage_mut(&base_key).unwrap();
         let accesses_after_first = cache.provider().accesses();
 
         // Query at the same point again — should be a cache hit.
-        let response1 = cache.nearest_lower_preimage_mut(base_key).unwrap();
+        let response1 = cache.nearest_lower_preimage_mut(&base_key).unwrap();
         assert_eq!(cache.provider().accesses(), accesses_after_first);
 
         // Verify correctness.
-        let db_response = db.nearest_lower_preimage(base_key).unwrap();
+        let db_response = db.nearest_lower_preimage(&base_key).unwrap();
         assert_eq!(response1, db_response);
     }
 }

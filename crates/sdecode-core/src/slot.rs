@@ -30,7 +30,7 @@ impl DecodedStorageSlot {
         provider: &mut P,
         slot: B256,
     ) -> Result<Option<Self>, P::Error> {
-        let Some(entry) = provider.nearest_lower_preimage_mut(slot)? else {
+        let Some(entry) = provider.nearest_lower_preimage_mut(&slot)? else {
             return Ok(None);
         };
 

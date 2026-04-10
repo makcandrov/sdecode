@@ -35,8 +35,8 @@ impl GeneralCache {
         };
 
         // Query boundary preimages to establish initial explored ranges.
-        let min_entry = provider.nearest_upper_preimage_mut(Image::ZERO)?;
-        let max_entry = provider.nearest_lower_preimage_mut(B256_MAX)?;
+        let min_entry = provider.nearest_upper_preimage_mut(&Image::ZERO)?;
+        let max_entry = provider.nearest_lower_preimage_mut(&B256_MAX)?;
 
         // [0, min_image] is explored: no preimages in [0, min_image).
         let min_image = min_entry.as_ref().map_or(U256::MAX, |e| e.image_u256());
@@ -129,9 +129,9 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for GeneralCache {
     fn nearest_lower_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, P::Error> {
-        let image_u256 = b256_to_u256(image);
+        let image_u256 = b256_to_u256(*image);
 
         if let Some((range_start, _)) = self.explored_range(image_u256) {
             return Ok(self
@@ -151,9 +151,9 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for GeneralCache {
     fn nearest_upper_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, P::Error> {
-        let image_u256 = b256_to_u256(image);
+        let image_u256 = b256_to_u256(*image);
 
         if let Some((_, range_end)) = self.explored_range(image_u256) {
             return Ok(self
@@ -196,15 +196,15 @@ mod tests {
         for _ in 0..N {
             let random_key = B256::random();
 
-            let db_lower = db.nearest_lower_preimage(random_key).unwrap();
+            let db_lower = db.nearest_lower_preimage(&random_key).unwrap();
             let cache_lower = cache
-                .nearest_lower_preimage_mut(&mut db_counter, random_key)
+                .nearest_lower_preimage_mut(&mut db_counter, &random_key)
                 .unwrap();
             assert_eq!(db_lower, cache_lower);
 
-            let db_upper = db.nearest_upper_preimage(random_key).unwrap();
+            let db_upper = db.nearest_upper_preimage(&random_key).unwrap();
             let cache_upper = cache
-                .nearest_upper_preimage_mut(&mut db_counter, random_key)
+                .nearest_upper_preimage_mut(&mut db_counter, &random_key)
                 .unwrap();
             assert_eq!(db_upper, cache_upper);
         }
@@ -223,13 +223,13 @@ mod tests {
             let random_key = B256::random();
             assert_eq!(
                 cache
-                    .nearest_lower_preimage_mut(&mut db_counter, random_key)
+                    .nearest_lower_preimage_mut(&mut db_counter, &random_key)
                     .unwrap(),
                 None,
             );
             assert_eq!(
                 cache
-                    .nearest_upper_preimage_mut(&mut db_counter, random_key)
+                    .nearest_upper_preimage_mut(&mut db_counter, &random_key)
                     .unwrap(),
                 None,
             );

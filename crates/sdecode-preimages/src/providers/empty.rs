@@ -15,15 +15,15 @@ impl EmptyPreimagesProvider {
 impl PreimagesProvider for EmptyPreimagesProvider {
     type Error = Infallible;
 
-    fn nearest_lower_preimage(&self, _: Image) -> Result<Option<PreimageEntry>, Self::Error> {
+    fn nearest_lower_preimage(&self, _: &Image) -> Result<Option<PreimageEntry>, Self::Error> {
         Ok(None)
     }
 
-    fn nearest_upper_preimage(&self, _: Image) -> Result<Option<PreimageEntry>, Self::Error> {
+    fn nearest_upper_preimage(&self, _: &Image) -> Result<Option<PreimageEntry>, Self::Error> {
         Ok(None)
     }
 
-    fn exact_preimage(&self, _: Image) -> Result<Option<Preimage>, Self::Error> {
+    fn exact_preimage(&self, _: &Image) -> Result<Option<Preimage>, Self::Error> {
         Ok(None)
     }
 }

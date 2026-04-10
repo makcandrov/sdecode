@@ -6,13 +6,13 @@ pub trait PreimagesCache<P: PreimagesProviderMut>: Sized {
     fn nearest_lower_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, P::Error>;
 
     fn nearest_upper_preimage_mut(
         &mut self,
         provider: &mut P,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, P::Error>;
 }
 
@@ -86,14 +86,14 @@ where
 
     fn nearest_lower_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         PreimagesCache::nearest_lower_preimage_mut(&mut self.cache, &mut self.provider, image)
     }
 
     fn nearest_upper_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         PreimagesCache::nearest_upper_preimage_mut(&mut self.cache, &mut self.provider, image)
     }

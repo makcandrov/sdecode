@@ -21,19 +21,19 @@ pub trait PreimagesProvider {
 
     /// Returns the entry with the largest image less than or equal to `image`, or `None` if no
     /// such entry exists.
-    fn nearest_lower_preimage(&self, image: Image) -> Result<Option<PreimageEntry>, Self::Error>;
+    fn nearest_lower_preimage(&self, image: &Image) -> Result<Option<PreimageEntry>, Self::Error>;
 
     /// Returns the entry with the smallest image greater than or equal to `image`, or `None` if
     /// no such entry exists.
-    fn nearest_upper_preimage(&self, image: Image) -> Result<Option<PreimageEntry>, Self::Error>;
+    fn nearest_upper_preimage(&self, image: &Image) -> Result<Option<PreimageEntry>, Self::Error>;
 
     /// Returns the preimage for an exact `image` match, or `None` if the image is not present.
     ///
     /// The default implementation delegates to [`nearest_lower_preimage`](Self::nearest_lower_preimage)
     /// and checks for an exact match.
-    fn exact_preimage(&self, image: Image) -> Result<Option<Preimage>, Self::Error> {
+    fn exact_preimage(&self, image: &Image) -> Result<Option<Preimage>, Self::Error> {
         if let Some(entry) = self.nearest_lower_preimage(image)? {
-            Ok((entry.image() == image).then_some(entry.into_preimage()))
+            Ok((entry.image_ref() == image).then_some(entry.into_preimage()))
         } else {
             Ok(None)
         }
@@ -53,14 +53,14 @@ pub trait PreimagesProviderMut {
     /// such entry exists.
     fn nearest_lower_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error>;
 
     /// Returns the entry with the smallest image greater than or equal to `image`, or `None` if
     /// no such entry exists.
     fn nearest_upper_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error>;
 
     /// Returns the preimage for an exact `image` match, or `None` if the image is not present.
@@ -68,9 +68,9 @@ pub trait PreimagesProviderMut {
     /// The default implementation delegates to
     /// [`nearest_lower_preimage_mut`](Self::nearest_lower_preimage_mut) and checks for an exact
     /// match.
-    fn exact_preimage_mut(&mut self, image: Image) -> Result<Option<Preimage>, Self::Error> {
+    fn exact_preimage_mut(&mut self, image: &Image) -> Result<Option<Preimage>, Self::Error> {
         if let Some(preimage) = self.nearest_lower_preimage_mut(image)? {
-            Ok((preimage.image() == image).then_some(preimage.into_preimage()))
+            Ok((preimage.image_ref() == image).then_some(preimage.into_preimage()))
         } else {
             Ok(None)
         }
@@ -98,7 +98,7 @@ impl<P: PreimagesProvider> PreimagesProviderMut for WrapPreimagesProvider<P> {
     #[inline(always)]
     fn nearest_lower_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         self.0.nearest_lower_preimage(image)
     }
@@ -106,7 +106,7 @@ impl<P: PreimagesProvider> PreimagesProviderMut for WrapPreimagesProvider<P> {
     #[inline(always)]
     fn nearest_upper_preimage_mut(
         &mut self,
-        image: Image,
+        image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         self.0.nearest_upper_preimage(image)
     }
