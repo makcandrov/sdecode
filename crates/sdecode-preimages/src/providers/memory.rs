@@ -1,4 +1,5 @@
 use std::{
+    borrow::Borrow,
     collections::{BTreeMap, btree_map},
     convert::Infallible,
 };
@@ -164,10 +165,10 @@ impl PreimagesWriterMut for InMemoryPreimages {
 
     fn write_preimages_mut<'a>(
         &mut self,
-        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
     ) -> Result<(), Self::Error> {
         for preimage in preimages.into_iter() {
-            self.insert_entry(preimage.clone());
+            self.insert_entry(preimage.borrow().clone());
         }
         Ok(())
     }

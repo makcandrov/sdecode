@@ -1,4 +1,4 @@
-use std::{error::Error, iter::once};
+use std::{borrow::Borrow, error::Error, iter::once};
 
 use quick_impl::quick_impl;
 
@@ -14,9 +14,9 @@ pub trait PreimagesWriter {
     type Error: Error;
 
     /// Persists all preimage entries yielded by the iterator.
-    fn write_preimages<'a>(
+    fn write_preimages(
         &self,
-        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
     ) -> Result<(), Self::Error>;
 
     /// Persists a single preimage entry.
@@ -36,9 +36,9 @@ pub trait PreimagesWriterMut {
     type Error: Error;
 
     /// Persists all preimage entries yielded by the iterator.
-    fn write_preimages_mut<'a>(
+    fn write_preimages_mut(
         &mut self,
-        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
     ) -> Result<(), Self::Error>;
 
     /// Persists a single preimage entry.
@@ -69,9 +69,9 @@ impl<W: PreimagesWriter> PreimagesWriterMut for WrapPreimagesWriter<W> {
     type Error = W::Error;
 
     #[inline]
-    fn write_preimages_mut<'a>(
+    fn write_preimages_mut(
         &mut self,
-        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
     ) -> Result<(), Self::Error> {
         self.0.write_preimages(preimages)
     }

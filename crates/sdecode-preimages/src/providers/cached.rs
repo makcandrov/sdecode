@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use quick_impl::quick_impl;
 use sdecode_preimages_interface::{PreimagesWriter, PreimagesWriterMut};
 
@@ -109,7 +111,7 @@ where
     #[inline]
     fn write_preimages<'a>(
         &self,
-        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
     ) -> Result<(), Self::Error> {
         self.cache.write_preimages(preimages)
     }
@@ -134,7 +136,7 @@ where
     #[inline]
     fn write_preimages_mut<'a>(
         &mut self,
-        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
     ) -> Result<(), Self::Error> {
         self.cache.write_preimages_mut(preimages)
     }
