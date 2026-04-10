@@ -22,6 +22,7 @@ pub trait PreimagesWriter {
     /// Persists a single preimage entry.
     ///
     /// The default implementation delegates to [`write_preimages`](Self::write_preimages).
+    #[inline]
     fn write_preimage_entry(&self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
         self.write_preimages(once(preimage))
     }
@@ -43,6 +44,7 @@ pub trait PreimagesWriterMut {
     /// Persists a single preimage entry.
     ///
     /// The default implementation delegates to [`write_preimages_mut`](Self::write_preimages_mut).
+    #[inline]
     fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
         self.write_preimages_mut(once(preimage))
     }
@@ -66,11 +68,16 @@ impl<W> WrapPreimagesWriter<W> {
 impl<W: PreimagesWriter> PreimagesWriterMut for WrapPreimagesWriter<W> {
     type Error = W::Error;
 
-    #[inline(always)]
+    #[inline]
     fn write_preimages_mut<'a>(
         &mut self,
         preimages: impl IntoIterator<Item = &'a PreimageEntry>,
     ) -> Result<(), Self::Error> {
         self.0.write_preimages(preimages)
+    }
+
+    #[inline]
+    fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
+        self.0.write_preimage_entry(preimage)
     }
 }

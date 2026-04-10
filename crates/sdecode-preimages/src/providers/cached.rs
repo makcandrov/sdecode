@@ -1,4 +1,5 @@
 use quick_impl::quick_impl;
+use sdecode_preimages_interface::{PreimagesWriter, PreimagesWriterMut};
 
 use crate::{Image, PreimageEntry, PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider};
 
@@ -96,5 +97,45 @@ where
         image: &Image,
     ) -> Result<Option<PreimageEntry>, Self::Error> {
         PreimagesCache::nearest_upper_preimage_mut(&mut self.cache, &mut self.provider, image)
+    }
+}
+
+impl<P, C> PreimagesWriter for CachedProvider<P, C>
+where
+    C: PreimagesWriter,
+{
+    type Error = C::Error;
+
+    #[inline]
+    fn write_preimages<'a>(
+        &self,
+        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+    ) -> Result<(), Self::Error> {
+        self.cache.write_preimages(preimages)
+    }
+
+    #[inline]
+    fn write_preimage_entry(&self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
+        self.cache.write_preimage_entry(preimage)
+    }
+}
+
+impl<P, C> PreimagesWriterMut for CachedProvider<P, C>
+where
+    C: PreimagesWriterMut,
+{
+    type Error = C::Error;
+
+    #[inline]
+    fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
+        self.cache.write_preimage_entry_mut(preimage)
+    }
+
+    #[inline]
+    fn write_preimages_mut<'a>(
+        &mut self,
+        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+    ) -> Result<(), Self::Error> {
+        self.cache.write_preimages_mut(preimages)
     }
 }
