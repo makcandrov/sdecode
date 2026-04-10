@@ -74,4 +74,3 @@ impl<W: PreimagesWriter> PreimagesWriterMut for WrapPreimagesWriter<W> {
         self.0.write_preimages(preimages)
     }
 }
-

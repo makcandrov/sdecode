@@ -5,6 +5,7 @@ use std::{
 
 use alloy_primitives::keccak256;
 use quick_impl::quick_impl;
+use sdecode_preimages_interface::{PreimagesProviderMut, PreimagesWriterMut};
 
 use crate::{Image, Preimage, PreimageEntry, PreimagesProvider};
 
@@ -95,6 +96,23 @@ impl<'a> FromIterator<&'a PreimageEntry> for MemoryPreimagesProvider {
     }
 }
 
+impl IntoIterator for MemoryPreimagesProvider {
+    type Item = PreimageEntry;
+
+    type IntoIter = std::iter::Map<
+        btree_map::IntoIter<Image, Preimage>,
+        fn((Image, Preimage)) -> PreimageEntry,
+    >;
+
+    fn into_iter(self) -> Self::IntoIter {
+        #[inline(always)]
+        fn map((image, preimage): (Image, Preimage)) -> PreimageEntry {
+            PreimageEntry::new_unchecked(image, preimage)
+        }
+        self.preimages.into_iter().map(map)
+    }
+}
+
 impl PreimagesProvider for MemoryPreimagesProvider {
     type Error = Infallible;
 
@@ -115,19 +133,39 @@ impl PreimagesProvider for MemoryPreimagesProvider {
     }
 }
 
-impl IntoIterator for MemoryPreimagesProvider {
-    type Item = PreimageEntry;
+impl PreimagesProviderMut for MemoryPreimagesProvider {
+    type Error = Infallible;
 
-    type IntoIter = std::iter::Map<
-        btree_map::IntoIter<Image, Preimage>,
-        fn((Image, Preimage)) -> PreimageEntry,
-    >;
+    fn nearest_lower_preimage_mut(
+        &mut self,
+        image: &Image,
+    ) -> Result<Option<PreimageEntry>, Self::Error> {
+        self.nearest_lower_preimage(image)
+    }
 
-    fn into_iter(self) -> Self::IntoIter {
-        #[inline(always)]
-        fn map((image, preimage): (Image, Preimage)) -> PreimageEntry {
-            PreimageEntry::new_unchecked(image, preimage)
+    fn nearest_upper_preimage_mut(
+        &mut self,
+        image: &Image,
+    ) -> Result<Option<PreimageEntry>, Self::Error> {
+        self.nearest_upper_preimage(image)
+    }
+}
+
+impl PreimagesWriterMut for MemoryPreimagesProvider {
+    type Error = Infallible;
+
+    fn write_preimages_mut<'a>(
+        &mut self,
+        preimages: impl IntoIterator<Item = &'a PreimageEntry>,
+    ) -> Result<(), Self::Error> {
+        for preimage in preimages.into_iter() {
+            self.insert_entry(preimage.clone());
         }
-        self.preimages.into_iter().map(map)
+        Ok(())
+    }
+
+    fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
+        self.insert_entry(preimage.clone());
+        Ok(())
     }
 }
