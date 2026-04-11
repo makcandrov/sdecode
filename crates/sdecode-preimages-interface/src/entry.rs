@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use alloy_primitives::{B256, Bytes, KECCAK256_EMPTY, U256, keccak256};
 use quick_impl::quick_impl;
 
@@ -20,6 +22,12 @@ pub struct PreimageEntry {
     preimage: Preimage,
 }
 
+impl std::fmt::Display for PreimageEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} => {}", self.image, self.preimage)
+    }
+}
+
 impl Default for PreimageEntry {
     fn default() -> Self {
         Self::empty()
@@ -27,14 +35,26 @@ impl Default for PreimageEntry {
 }
 
 impl PartialOrd for PreimageEntry {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl Ord for PreimageEntry {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         self.image.cmp(&other.image)
+    }
+}
+
+impl<'a> From<&'a PreimageEntry> for (&'a Image, &'a Preimage) {
+    fn from(entry: &'a PreimageEntry) -> Self {
+        (entry.image_ref(), entry.preimage())
+    }
+}
+
+impl<'a> From<&'a PreimageEntry> for (&'a [u8; 32], &'a [u8]) {
+    fn from(entry: &'a PreimageEntry) -> Self {
+        (&entry.image_ref().0, &entry.preimage().0)
     }
 }
 
