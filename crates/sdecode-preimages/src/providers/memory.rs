@@ -87,6 +87,10 @@ impl InMemoryPreimages {
             .map(|(image, preimage)| PreimageEntry::new_unchecked(image, preimage))
             .collect()
     }
+
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = PreimageEntryRef<'a>> {
+        self.into_iter()
+    }
 }
 
 impl FromIterator<PreimageEntry> for InMemoryPreimages {
@@ -125,7 +129,7 @@ impl<'a> IntoIterator for &'a InMemoryPreimages {
 
     type IntoIter = std::iter::Map<
         btree_map::Iter<'a, Image, Preimage>,
-        for<'b > fn((&'b Image, &'b Preimage)) -> PreimageEntryRef<'b>,
+        for<'b> fn((&'b Image, &'b Preimage)) -> PreimageEntryRef<'b>,
     >;
 
     fn into_iter(self) -> Self::IntoIter {
