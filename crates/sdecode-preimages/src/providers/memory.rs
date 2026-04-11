@@ -120,6 +120,23 @@ impl IntoIterator for InMemoryPreimages {
     }
 }
 
+impl<'a> IntoIterator for &'a InMemoryPreimages {
+    type Item = PreimageEntryRef<'a>;
+
+    type IntoIter = std::iter::Map<
+        btree_map::Iter<'a, Image, Preimage>,
+        for<'b > fn((&'b Image, &'b Preimage)) -> PreimageEntryRef<'b>,
+    >;
+
+    fn into_iter(self) -> Self::IntoIter {
+        #[inline(always)]
+        fn map<'b>((image, preimage): (&'b Image, &'b Preimage)) -> PreimageEntryRef<'b> {
+            PreimageEntryRef::new_unchecked(image, preimage)
+        }
+        self.preimages.iter().map(map)
+    }
+}
+
 impl PreimagesProvider for InMemoryPreimages {
     type Error = Infallible;
 
