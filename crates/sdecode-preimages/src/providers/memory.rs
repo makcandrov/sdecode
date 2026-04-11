@@ -1,12 +1,11 @@
 use std::{
-    borrow::Borrow,
     collections::{BTreeMap, btree_map},
     convert::Infallible,
 };
 
 use alloy_primitives::keccak256;
 use quick_impl::quick_impl;
-use sdecode_preimages_interface::{PreimagesProviderMut, PreimagesWriterMut};
+use sdecode_preimages_interface::{PreimageEntryRef, PreimagesProviderMut, PreimagesWriterMut};
 
 use crate::{Image, Preimage, PreimageEntry, PreimagesProvider};
 
@@ -50,6 +49,13 @@ impl InMemoryPreimages {
     pub fn insert_entry(&mut self, entry: PreimageEntry) -> bool {
         let (image, preimage) = entry.into_parts();
         self.insert_unchecked(image, preimage)
+    }
+
+    /// Insert a preimage entry reference.
+    #[inline]
+    pub fn insert_entry_ref(&mut self, entry: PreimageEntryRef<'_>) -> bool {
+        let (image, preimage) = entry.as_parts();
+        self.insert_unchecked_with(*image, || preimage.clone())
     }
 
     /// Insert a preimage without checking the validity.
@@ -165,16 +171,19 @@ impl PreimagesWriterMut for InMemoryPreimages {
 
     fn write_preimages_mut<'a>(
         &mut self,
-        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
+        preimages: impl IntoIterator<Item = impl Into<PreimageEntryRef<'a>>>,
     ) -> Result<(), Self::Error> {
-        for preimage in preimages.into_iter() {
-            self.insert_entry(preimage.borrow().clone());
+        for entry in preimages.into_iter() {
+            self.insert_entry_ref(entry.into());
         }
         Ok(())
     }
 
-    fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
-        self.insert_entry(preimage.clone());
+    fn write_preimage_entry_mut<'a>(
+        &mut self,
+        entry: impl Into<PreimageEntryRef<'a>>,
+    ) -> Result<(), Self::Error> {
+        self.insert_entry_ref(entry.into());
         Ok(())
     }
 }

@@ -1,7 +1,5 @@
-use std::borrow::Borrow;
-
 use quick_impl::quick_impl;
-use sdecode_preimages_interface::{PreimagesWriter, PreimagesWriterMut};
+use sdecode_preimages_interface::{PreimageEntryRef, PreimagesWriter, PreimagesWriterMut};
 
 use crate::{Image, PreimageEntry, PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider};
 
@@ -111,13 +109,16 @@ where
     #[inline]
     fn write_preimages<'a>(
         &self,
-        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
+        preimages: impl IntoIterator<Item = impl Into<PreimageEntryRef<'a>>>,
     ) -> Result<(), Self::Error> {
         self.cache.write_preimages(preimages)
     }
 
     #[inline]
-    fn write_preimage_entry(&self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
+    fn write_preimage_entry<'a>(
+        &self,
+        preimage: impl Into<PreimageEntryRef<'a>>,
+    ) -> Result<(), Self::Error> {
         self.cache.write_preimage_entry(preimage)
     }
 }
@@ -129,14 +130,17 @@ where
     type Error = C::Error;
 
     #[inline]
-    fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
+    fn write_preimage_entry_mut<'a>(
+        &mut self,
+        preimage: impl Into<PreimageEntryRef<'a>>,
+    ) -> Result<(), Self::Error> {
         self.cache.write_preimage_entry_mut(preimage)
     }
 
     #[inline]
     fn write_preimages_mut<'a>(
         &mut self,
-        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
+        preimages: impl IntoIterator<Item = impl Into<PreimageEntryRef<'a>>>,
     ) -> Result<(), Self::Error> {
         self.cache.write_preimages_mut(preimages)
     }

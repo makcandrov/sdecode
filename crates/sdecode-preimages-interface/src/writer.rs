@@ -1,8 +1,6 @@
-use std::{borrow::Borrow, error::Error, iter::once};
+use std::{error::Error, iter::once};
 
-use quick_impl::quick_impl;
-
-use crate::PreimageEntry;
+use crate::PreimageEntryRef;
 
 /// Write-only sink for persisting keccak256 preimage entries.
 ///
@@ -14,17 +12,20 @@ pub trait PreimagesWriter {
     type Error: Error;
 
     /// Persists all preimage entries yielded by the iterator.
-    fn write_preimages(
+    fn write_preimages<'a>(
         &self,
-        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
+        preimages: impl IntoIterator<Item = impl Into<PreimageEntryRef<'a>>>,
     ) -> Result<(), Self::Error>;
 
     /// Persists a single preimage entry.
     ///
     /// The default implementation delegates to [`write_preimages`](Self::write_preimages).
     #[inline]
-    fn write_preimage_entry(&self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
-        self.write_preimages(once(preimage))
+    fn write_preimage_entry<'a>(
+        &self,
+        entry: impl Into<PreimageEntryRef<'a>>,
+    ) -> Result<(), Self::Error> {
+        self.write_preimages(once(entry))
     }
 }
 
@@ -36,17 +37,20 @@ pub trait PreimagesWriterMut {
     type Error: Error;
 
     /// Persists all preimage entries yielded by the iterator.
-    fn write_preimages_mut(
+    fn write_preimages_mut<'a>(
         &mut self,
-        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
+        preimages: impl IntoIterator<Item = impl Into<PreimageEntryRef<'a>>>,
     ) -> Result<(), Self::Error>;
 
     /// Persists a single preimage entry.
     ///
     /// The default implementation delegates to [`write_preimages_mut`](Self::write_preimages_mut).
     #[inline]
-    fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
-        self.write_preimages_mut(once(preimage))
+    fn write_preimage_entry_mut<'a>(
+        &mut self,
+        entry: impl Into<PreimageEntryRef<'a>>,
+    ) -> Result<(), Self::Error> {
+        self.write_preimages_mut(once(entry))
     }
 }
 
@@ -55,8 +59,13 @@ pub trait PreimagesWriterMut {
 /// This is useful when you have a shared writer but need to pass it to an API that requires
 /// [`PreimagesWriterMut`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[quick_impl(impl From)]
 pub struct WrapPreimagesWriter<W>(pub W);
+
+impl<W> From<W> for WrapPreimagesWriter<W> {
+    fn from(writer: W) -> Self {
+        Self(writer)
+    }
+}
 
 impl<W> WrapPreimagesWriter<W> {
     /// Creates a new wrapper around the given writer.
@@ -69,15 +78,18 @@ impl<W: PreimagesWriter> PreimagesWriterMut for WrapPreimagesWriter<W> {
     type Error = W::Error;
 
     #[inline]
-    fn write_preimages_mut(
+    fn write_preimages_mut<'a>(
         &mut self,
-        preimages: impl IntoIterator<Item = impl Borrow<PreimageEntry>>,
+        preimages: impl IntoIterator<Item = impl Into<PreimageEntryRef<'a>>>,
     ) -> Result<(), Self::Error> {
         self.0.write_preimages(preimages)
     }
 
     #[inline]
-    fn write_preimage_entry_mut(&mut self, preimage: &PreimageEntry) -> Result<(), Self::Error> {
-        self.0.write_preimage_entry(preimage)
+    fn write_preimage_entry_mut<'a>(
+        &mut self,
+        entry: impl Into<PreimageEntryRef<'a>>,
+    ) -> Result<(), Self::Error> {
+        self.0.write_preimage_entry(entry)
     }
 }
