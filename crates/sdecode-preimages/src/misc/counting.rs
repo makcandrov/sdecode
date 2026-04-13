@@ -45,7 +45,7 @@ pub struct CountingPreimagesProvider<P> {
 }
 
 impl<P> CountingPreimagesProvider<P> {
-    /// Wraps a [`PreimagesProviderMut`].
+    /// Wraps the given provider with a counter initialized to zero.
     #[inline]
     pub const fn new(provider: P) -> Self {
         Self {

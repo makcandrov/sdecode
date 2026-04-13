@@ -89,7 +89,7 @@ pub trait PreimagesProviderMut {
     /// The default implementation delegates to
     /// [`nearest_upper_preimage_mut`](Self::nearest_upper_preimage_mut) starting from
     /// `Image::ZERO`.
-    fn is_empty(&mut self) -> Result<bool, Self::Error> {
+    fn is_empty_mut(&mut self) -> Result<bool, Self::Error> {
         Ok(self.nearest_upper_preimage_mut(&Image::ZERO)?.is_none())
     }
 }
@@ -134,7 +134,7 @@ impl<P: PreimagesProvider> PreimagesProviderMut for WrapPreimagesProvider<P> {
     }
 
     #[inline]
-    fn is_empty(&mut self) -> Result<bool, Self::Error> {
+    fn is_empty_mut(&mut self) -> Result<bool, Self::Error> {
         self.0.is_empty()
     }
 }

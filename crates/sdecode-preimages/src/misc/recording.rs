@@ -1,9 +1,6 @@
 use quick_impl::quick_impl;
 
-use crate::{
-    Image, InMemoryPreimages, PreimageEntry, PreimagesProvider, PreimagesProviderMut,
-    WrapPreimagesProvider,
-};
+use crate::{Image, InMemoryPreimages, PreimageEntry, PreimagesProviderMut};
 
 /// A wrapper that records every entry returned by the inner provider.
 ///
@@ -37,34 +34,18 @@ pub struct RecordingPreimagesProvider<P> {
     #[quick_impl(pub get = "{}", pub get_mut = "{}_mut", pub into)]
     provider: P,
 
-    #[quick_impl(pub get = "{}", pub into)]
+    #[quick_impl(pub get = "{}", pub into, pub take)]
     recorded: InMemoryPreimages,
 }
 
-impl<P: PreimagesProvider> RecordingPreimagesProvider<WrapPreimagesProvider<P>> {
-    /// Wraps a [`PreimagesProvider`], adapting it to [`PreimagesProviderMut`] in the process.
+impl<P: PreimagesProviderMut> RecordingPreimagesProvider<P> {
+    /// Wraps the given provider, starting with an empty recording store.
     #[inline]
     pub const fn new(provider: P) -> Self {
-        Self::new_mut(WrapPreimagesProvider(provider))
-    }
-}
-
-impl<P: PreimagesProviderMut> RecordingPreimagesProvider<P> {
-    /// Wraps a [`PreimagesProviderMut`].
-    #[inline]
-    pub const fn new_mut(provider: P) -> Self {
         Self {
             provider,
             recorded: InMemoryPreimages::new(),
         }
-    }
-}
-
-impl<P> RecordingPreimagesProvider<P> {
-    /// Removes and returns the recorded entries, leaving an empty store behind.
-    #[inline]
-    pub fn take_recorded(&mut self) -> InMemoryPreimages {
-        std::mem::take(&mut self.recorded)
     }
 }
 
@@ -99,6 +80,7 @@ impl<P: PreimagesProviderMut> PreimagesProviderMut for RecordingPreimagesProvide
 #[cfg(test)]
 mod tests {
     use alloy_primitives::{B256, Bytes};
+    use sdecode_preimages_interface::WrapPreimagesProvider;
 
     use super::*;
     use crate::EmptyPreimagesProvider;
@@ -113,7 +95,7 @@ mod tests {
     #[test]
     fn records_returned_entries() {
         let (db, a, b) = fixture();
-        let mut recorder = RecordingPreimagesProvider::new(&db);
+        let mut recorder = RecordingPreimagesProvider::new(WrapPreimagesProvider(&db));
 
         let _ = recorder.nearest_lower_preimage_mut(&a).unwrap();
         let _ = recorder.nearest_lower_preimage_mut(&b).unwrap();
@@ -134,7 +116,7 @@ mod tests {
     #[test]
     fn deduplicates_repeated_lookups() {
         let (db, a, _) = fixture();
-        let mut recorder = RecordingPreimagesProvider::new(&db);
+        let mut recorder = RecordingPreimagesProvider::new(WrapPreimagesProvider(&db));
 
         for _ in 0..5 {
             let _ = recorder.nearest_lower_preimage_mut(&a).unwrap();
@@ -145,7 +127,7 @@ mod tests {
     #[test]
     fn take_recorded_resets_to_empty() {
         let (db, a, _) = fixture();
-        let mut recorder = RecordingPreimagesProvider::new(&db);
+        let mut recorder = RecordingPreimagesProvider::new(WrapPreimagesProvider(&db));
 
         let _ = recorder.nearest_lower_preimage_mut(&a).unwrap();
         let taken = recorder.take_recorded();
