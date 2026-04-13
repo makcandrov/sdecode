@@ -151,9 +151,10 @@ impl<const N: usize, P: PreimagesProviderMut> PreimagesCache<P> for ApproxCache<
 #[cfg(test)]
 mod tests {
     use alloy_primitives::B256;
+    use sdecode_preimages_interface::WrapPreimagesProvider;
 
     use crate::{
-        Image, InMemoryPreimages, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut,
+        Image, InMemoryPreimages, Preimage, PreimagesProvider, misc::CountingPreimagesProvider,
     };
 
     use super::*;
@@ -167,7 +168,7 @@ mod tests {
         }
 
         // N=16 is very safe for 10 preimages (128 prefix bits, collision prob ~2⁻¹¹³).
-        let mut db_counter = CounterPreimagesProviderMut::new(&db);
+        let mut db_counter = WrapPreimagesProvider(CountingPreimagesProvider::new(&db));
         let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
 
         const QUERIES: usize = 50;
@@ -194,7 +195,7 @@ mod tests {
     #[test]
     fn test_approx_cache_empty_provider() {
         let db = InMemoryPreimages::new();
-        let mut db_counter = CounterPreimagesProviderMut::new(&db);
+        let mut db_counter = WrapPreimagesProvider(CountingPreimagesProvider::new(&db));
         let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
 
         for _ in 0..10 {
@@ -226,7 +227,7 @@ mod tests {
             images.push(db.insert(Preimage::copy_from_slice(&Image::random().0)));
         }
 
-        let mut db_counter = CounterPreimagesProviderMut::new(&db);
+        let mut db_counter = WrapPreimagesProvider(CountingPreimagesProvider::new(&db));
         let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
 
         // First pass: query at exact preimage images to populate the cache.
@@ -258,7 +259,7 @@ mod tests {
         let preimage = Preimage::copy_from_slice(&Image::random().0);
         let image = db.insert(preimage);
 
-        let mut db_counter = CounterPreimagesProviderMut::new(&db);
+        let mut db_counter = WrapPreimagesProvider(CountingPreimagesProvider::new(&db));
         let mut cache = ApproxCache::<16>::new_init(&mut db_counter, ()).unwrap();
         let accesses_after_init = db_counter.accesses();
 

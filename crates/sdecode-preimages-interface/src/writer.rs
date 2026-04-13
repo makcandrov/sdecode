@@ -1,5 +1,7 @@
 use std::{error::Error, iter::once};
 
+use quick_impl::quick_impl;
+
 use crate::PreimageEntryRef;
 
 /// Write-only sink for persisting keccak256 preimage entries.
@@ -59,13 +61,8 @@ pub trait PreimagesWriterMut {
 /// This is useful when you have a shared writer but need to pass it to an API that requires
 /// [`PreimagesWriterMut`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct WrapPreimagesWriter<W>(pub W);
-
-impl<W> From<W> for WrapPreimagesWriter<W> {
-    fn from(writer: W) -> Self {
-        Self(writer)
-    }
-}
+#[quick_impl(impl From)]
+pub struct WrapPreimagesWriter<W>(#[quick_impl(impl Deref, impl DerefMut)] pub W);
 
 impl<W> WrapPreimagesWriter<W> {
     /// Creates a new wrapper around the given writer.

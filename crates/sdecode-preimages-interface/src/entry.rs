@@ -43,7 +43,7 @@ impl PreimageEntry {
     #[must_use]
     pub fn new(preimage: Preimage) -> Self {
         let image = keccak256(&preimage);
-        Self::new_unchecked(image, preimage)
+        Self { image, preimage }
     }
 
     /// Creates a new entry from a pre-computed `image` and its `preimage`.

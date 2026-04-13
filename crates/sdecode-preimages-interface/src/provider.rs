@@ -1,5 +1,7 @@
 use std::error::Error;
 
+use quick_impl::quick_impl;
+
 use crate::{Image, Preimage, PreimageEntry};
 
 /// A boxed, type-erased [`PreimagesProvider`].
@@ -97,13 +99,8 @@ pub trait PreimagesProviderMut {
 /// This is useful when you have a read-only provider but need to pass it to an API that requires
 /// [`PreimagesProviderMut`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct WrapPreimagesProvider<P>(pub P);
-
-impl<P> From<P> for WrapPreimagesProvider<P> {
-    fn from(provider: P) -> Self {
-        Self(provider)
-    }
-}
+#[quick_impl(impl From)]
+pub struct WrapPreimagesProvider<P>(#[quick_impl(impl Deref, impl DerefMut)] pub P);
 
 impl<P> WrapPreimagesProvider<P> {
     /// Creates a new wrapper around the given provider.

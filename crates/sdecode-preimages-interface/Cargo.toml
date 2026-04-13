@@ -19,6 +19,7 @@ alloy-primitives.workspace = true
 serde = { workspace = true, optional = true }
 
 auto_impl.workspace = true
+quick-impl.workspace = true
 
 [features]
 serde = [

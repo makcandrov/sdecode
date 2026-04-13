@@ -174,10 +174,9 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for GeneralCache {
 #[cfg(test)]
 mod tests {
     use alloy_primitives::B256;
+    use sdecode_preimages_interface::WrapPreimagesProvider;
 
-    use crate::{
-        InMemoryPreimages, Preimage, PreimagesProvider, misc::CounterPreimagesProviderMut,
-    };
+    use crate::{InMemoryPreimages, Preimage, PreimagesProvider, misc::CountingPreimagesProvider};
 
     use super::*;
 
@@ -189,7 +188,7 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let mut db_counter = CounterPreimagesProviderMut::new(&db);
+        let mut db_counter = WrapPreimagesProvider(CountingPreimagesProvider::new(&db));
         let mut cache = GeneralCache::new_init(&mut db_counter, ()).unwrap();
 
         const N: usize = 50;
@@ -216,7 +215,7 @@ mod tests {
     #[test]
     fn test_general_cache_empty_provider() {
         let db = InMemoryPreimages::new();
-        let mut db_counter = CounterPreimagesProviderMut::new(&db);
+        let mut db_counter = WrapPreimagesProvider(CountingPreimagesProvider::new(&db));
         let mut cache = GeneralCache::new_init(&mut db_counter, ()).unwrap();
 
         for _ in 0..10 {
