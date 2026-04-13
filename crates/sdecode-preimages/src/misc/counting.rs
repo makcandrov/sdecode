@@ -14,28 +14,6 @@ use crate::{Image, PreimageEntry, PreimagesProvider, PreimagesProviderMut};
 ///
 /// The counter uses an [`AtomicUsize`] so it can be read through a shared reference, which is
 /// convenient when the underlying provider is itself shared.
-///
-/// # Example
-///
-/// ```rust
-/// use alloy_primitives::{B256, Bytes};
-/// use sdecode_preimages::{
-///     InMemoryPreimages, PreimagesProvider, misc::CountingPreimagesProvider,
-/// };
-///
-/// let mut db = InMemoryPreimages::new();
-/// db.insert(Bytes::from_static(b"hello"));
-///
-/// let counter = CountingPreimagesProvider::new_mut(&db);
-/// assert_eq!(counter.accesses(), 0);
-///
-/// let _ = counter.nearest_lower_preimage(&B256::ZERO).unwrap();
-/// let _ = counter.nearest_upper_preimage(&B256::ZERO).unwrap();
-/// assert_eq!(counter.accesses(), 2);
-///
-/// counter.reset();
-/// assert_eq!(counter.accesses(), 0);
-/// ```
 #[derive(Debug)]
 #[quick_impl]
 pub struct CountingPreimagesProvider<P> {

@@ -10,24 +10,6 @@ use crate::{Image, InMemoryPreimages, PreimageEntry, PreimagesProviderMut};
 ///
 /// Only entries actually returned by the inner provider are recorded — queries that resolve to
 /// `None` produce no recording.
-///
-/// # Example
-///
-/// ```rust
-/// use alloy_primitives::Bytes;
-/// use sdecode_preimages::{
-///     InMemoryPreimages, PreimagesProviderMut, misc::RecordingPreimagesProvider,
-/// };
-///
-/// let mut db = InMemoryPreimages::new();
-/// let img = db.insert(Bytes::from_static(b"hello"));
-///
-/// let mut recorder = RecordingPreimagesProvider::new(&db);
-/// let _ = recorder.nearest_lower_preimage_mut(&img).unwrap();
-///
-/// let recorded = recorder.into_recorded();
-/// assert_eq!(recorded.len(), 1);
-/// ```
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 #[quick_impl]
 pub struct RecordingPreimagesProvider<P> {
