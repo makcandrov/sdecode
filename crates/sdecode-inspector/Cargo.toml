@@ -18,7 +18,6 @@ revm-inspector.workspace = true
 revm-interpreter.workspace = true
 revm-bytecode.workspace = true
 
-hashbrown.workspace = true
 overf.workspace = true
 quick-impl.workspace = true
 

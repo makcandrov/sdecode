@@ -1,4 +1,4 @@
-use alloy_primitives::{B256, Bytes, TxKind, address, bytes, keccak256};
+use alloy_primitives::{B256, Bytes, TxKind, address, bytes, keccak256, map::B256Map};
 use revm::{
     Context, InspectEvm, MainBuilder, MainContext,
     context::{BlockEnv, TxEnv},
@@ -22,8 +22,8 @@ fn test_preimages_inspector() {
     })
     .unwrap();
 
-    assert_eq!(
-        insp.into_preimages(),
-        [(keccak256(B256::ZERO), Bytes::from(B256::ZERO))].into()
-    );
+    let mut map = B256Map::default();
+    map.insert(keccak256(B256::ZERO), Bytes::from(B256::ZERO));
+
+    assert_eq!(insp.into_preimages(), map,);
 }

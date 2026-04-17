@@ -2,8 +2,10 @@
 
 use std::collections::BTreeSet;
 
-use alloy_primitives::{Address, B256, Bytes, U256};
-use hashbrown::{HashMap, hash_map::Entry};
+use alloy_primitives::{
+    Address, B256, Bytes, U256,
+    map::{B256Map, Entry},
+};
 use overf::checked;
 use quick_impl::{quick_impl, quick_impl_all};
 use revm_bytecode::opcode::KECCAK256;
@@ -12,7 +14,7 @@ use revm_interpreter::{
     InstructionResult, Interpreter, InterpreterTypes, Stack,
     interpreter_types::{InputsTr, Jumps, LoopControl, MemoryTr, StackTr},
 };
-use sdecode_preimages::{Image, InMemoryPreimages, Preimage};
+use sdecode_preimages::{InMemoryPreimages, Preimage};
 
 /// An EVM inspector that captures Keccak256 preimages during transaction execution.
 ///
@@ -27,7 +29,7 @@ pub struct PreimagesInspector {
     unconfirmed: Option<(U256, U256)>,
 
     #[quick_impl(pub const get = "{}", pub take, pub into)]
-    preimages: HashMap<Image, Preimage>,
+    preimages: B256Map<Preimage>,
 
     #[quick_impl(pub const get = "{}", pub const get_mut = "{}_mut", pub with, pub set)]
     targets: InspectorTargets,
@@ -163,7 +165,7 @@ impl PreimagesInspector {
     pub fn new_with_target(targets: InspectorTargets) -> Self {
         Self {
             unconfirmed: None,
-            preimages: HashMap::new(),
+            preimages: Default::default(),
             targets,
         }
     }
