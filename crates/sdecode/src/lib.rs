@@ -1,8 +1,8 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 #![doc = include_str!("../../../README.md")]
 
+pub use alloy_preimages as preimages;
 pub use sdecode_core as core;
-pub use sdecode_preimages as preimages;
 
 pub mod solidity {
     pub use sdecode_solidity::{

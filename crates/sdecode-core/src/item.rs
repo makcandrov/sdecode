@@ -1,6 +1,6 @@
+use alloy_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider};
 use alloy_primitives::{B256, Bytes};
 use quick_impl::quick_impl_all;
-use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider};
 
 use crate::{DecodedStorageSlot, MappingKeySide};
 
@@ -101,8 +101,8 @@ impl StorageItem {
 
 #[cfg(test)]
 mod tests {
+    use alloy_preimages::providers::InMemoryPreimages;
     use alloy_primitives::{b256, bytes};
-    use sdecode_preimages::InMemoryPreimages;
 
     use super::*;
 

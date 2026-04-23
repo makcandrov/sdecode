@@ -1,3 +1,5 @@
+#![cfg_attr(not(test), warn(unused_crate_dependencies))]
+
 mod approx;
 pub use approx::{APPROX_CACHE_DEFAULT_PREFIX_LEN, ApproxCache, ApproxCachedProvider};
 
@@ -6,3 +8,5 @@ pub use general::{GeneralCache, GeneralCachedProvider};
 
 mod storage;
 pub use storage::{STORAGE_CACHE_DEFAULT_MAX_DELTA, StorageCache, StorageCachedProvider};
+
+mod utils;

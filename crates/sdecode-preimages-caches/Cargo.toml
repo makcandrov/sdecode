@@ -1,5 +1,5 @@
 [package]
-name = "sdecode-preimages"
+name = "sdecode-preimages-caches"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -14,14 +14,13 @@ keywords.workspace = true
 all-features = true
 
 [dependencies]
-sdecode-preimages-interface.workspace = true
+alloy-preimages.workspace = true
 
 alloy-primitives.workspace = true
 
 serde = { workspace = true, optional = true }
 hashbrown.workspace = true
 
-quick-impl.workspace = true
 overf.workspace = true
 
 [dev-dependencies]
@@ -29,7 +28,7 @@ alloy-primitives = { workspace = true, features = ["rand"] }
 
 [features]
 serde = [
-    "sdecode-preimages-interface/serde",
+    "alloy-preimages/serde",
     "dep:serde",
     "serde/derive",
     "alloy-primitives/serde",

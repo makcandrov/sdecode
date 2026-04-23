@@ -1,12 +1,13 @@
 use std::{collections::BTreeMap, convert::Infallible};
 
+use alloy_preimages::{
+    Image, PreimageEntry, PreimagesProviderMut,
+    providers::{CachedProvider, PreimagesCache, PreimagesCacheInit},
+};
 use alloy_primitives::{B256, U256};
 use overf::checked;
 
-use crate::{
-    CachedProvider, Image, PreimageEntry, PreimagesCache, PreimagesCacheInit, PreimagesProviderMut,
-    utils::b256_to_u256,
-};
+use crate::utils::b256_to_u256;
 
 pub const STORAGE_CACHE_DEFAULT_MAX_DELTA: U256 = U256::from_be_slice(&u32::MAX.to_be_bytes());
 
@@ -217,9 +218,10 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for StorageCache {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        InMemoryPreimages, Preimage, PreimagesProvider, PreimagesProviderMut,
-        misc::CountingPreimagesProvider,
+
+    use alloy_preimages::{
+        Preimage, PreimagesProvider,
+        providers::{InMemoryPreimages, PreimagesCounter},
     };
 
     use super::*;
@@ -232,9 +234,9 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let db_counter = CountingPreimagesProvider::new(&db);
+        let db_counter = PreimagesCounter::new(&db);
         let mut cache =
-            StorageCachedProvider::new(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         const N: usize = 50;
         for _ in 0..N {
@@ -253,9 +255,9 @@ mod tests {
     #[test]
     fn test_storage_cache_empty_provider() {
         let db = InMemoryPreimages::new();
-        let db_counter = CountingPreimagesProvider::new(&db);
+        let db_counter = PreimagesCounter::new(&db);
         let mut cache =
-            StorageCachedProvider::new(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         for _ in 0..10 {
             let random_key = B256::random();
@@ -271,9 +273,9 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let db_counter = CountingPreimagesProvider::new(&db);
+        let db_counter = PreimagesCounter::new(&db);
         let mut cache =
-            StorageCachedProvider::new(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         for _ in 0..10 {
             let random_key = B256::random();
@@ -294,9 +296,9 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let db_counter = CountingPreimagesProvider::new(&db);
+        let db_counter = PreimagesCounter::new(&db);
         let mut cache =
-            StorageCachedProvider::new(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
+            StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
         // Query at a random point to populate the cache.
         let base_key = B256::random();

@@ -1,6 +1,6 @@
+use alloy_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider};
 use alloy_primitives::{B256, Bytes, U256};
 use quick_impl::quick_impl;
-use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider};
 
 use crate::utils::b256_to_u256;
 

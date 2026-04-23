@@ -1,10 +1,9 @@
 use std::{borrow::Borrow, error::Error};
 
+use alloy_preimages::{PreimagesProvider, PreimagesProviderMut, providers::CachedProvider};
 use alloy_primitives::B256;
 use quick_impl::quick_impl_all;
-use sdecode_preimages::{
-    CachedProvider, PreimagesProvider, PreimagesProviderMut, caches::StorageCache,
-};
+use sdecode_preimages_caches::StorageCache;
 
 use crate::MAX_STORAGE_OFFSET_U256;
 

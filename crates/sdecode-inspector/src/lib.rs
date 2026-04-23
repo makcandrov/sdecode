@@ -2,6 +2,7 @@
 
 use std::collections::BTreeSet;
 
+use alloy_preimages::{Preimage, providers::InMemoryPreimages};
 use alloy_primitives::{
     Address, B256, Bytes, U256,
     map::{B256Map, Entry},
@@ -14,7 +15,6 @@ use revm_interpreter::{
     InstructionResult, Interpreter, InterpreterTypes, Stack,
     interpreter_types::{InputsTr, Jumps, LoopControl, MemoryTr, StackTr},
 };
-use sdecode_preimages::{InMemoryPreimages, Preimage};
 
 /// An EVM inspector that captures Keccak256 preimages during transaction execution.
 ///

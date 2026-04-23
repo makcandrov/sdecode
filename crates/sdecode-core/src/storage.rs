@@ -3,9 +3,10 @@ use std::{
     collections::{BTreeMap, btree_map},
 };
 
+use alloy_preimages::{PreimagesProvider, PreimagesProviderMut};
 use alloy_primitives::{B256, Bytes, U256};
 use overf::{checked, propagating, saturating};
-use sdecode_preimages::{PreimagesProvider, PreimagesProviderMut, caches::StorageCachedProvider};
+use sdecode_preimages_caches::StorageCachedProvider;
 
 use crate::{
     AnchorKind, MAX_STORAGE_OFFSET_U256, MappingKeySide, StorageItem, StorageNode, StorageReader,

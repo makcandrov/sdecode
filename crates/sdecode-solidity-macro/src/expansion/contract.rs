@@ -168,7 +168,7 @@ fn expand_storage_decode_impl(
 
     let sdecode_core = sc.file.sdecode_core();
     let sdecode_solidity = sc.file.sdecode_solidity();
-    let sdecode_preimages_interface = sc.file.sdecode_preimages_interface();
+    let alloy_preimages = sc.file.alloy_preimages();
     let alloy_primitives = sc.file.alloy_primitives();
 
     let mut fields_decode = TokenStream::new();
@@ -248,7 +248,7 @@ fn expand_storage_decode_impl(
                 >,
             ) -> ::core::result::Result<Self, #sdecode_core ::StorageError<P::Error, Self::LayoutError>>
             where
-                P: #sdecode_preimages_interface ::PreimagesProviderMut,
+                P: #alloy_preimages ::PreimagesProviderMut,
            {
                 let side = #sdecode_core::MappingKeySide:: #language;
 

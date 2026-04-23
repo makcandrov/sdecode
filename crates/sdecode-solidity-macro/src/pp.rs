@@ -164,9 +164,9 @@ impl<'a> PPFile<'a> {
         quote! { #sdecode_solidity :: __private::sdecode_core }
     }
 
-    pub fn sdecode_preimages_interface(&self) -> TokenStream {
+    pub fn alloy_preimages(&self) -> TokenStream {
         let sdecode_solidity = &self.sdecode_solidity();
-        quote! { #sdecode_solidity :: __private::sdecode_preimages_interface }
+        quote! { #sdecode_solidity :: __private::alloy_preimages }
     }
 
     pub fn alloy_primitives(&self) -> TokenStream {

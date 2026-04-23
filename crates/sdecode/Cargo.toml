@@ -14,10 +14,11 @@ keywords.workspace = true
 all-features = true
 
 [dependencies]
-sdecode-preimages.workspace = true
 sdecode-core.workspace = true
 sdecode-solidity.workspace = true
 sdecode-solidity-macro.workspace = true
+
+alloy-preimages.workspace = true
 
 [dev-dependencies]
 sdecode-solidity = { workspace = true, features = ["hashbrown"] }
@@ -31,7 +32,7 @@ serde_json.workspace = true
 
 [features]
 serde = [
-    "sdecode-preimages/serde",
+    "alloy-preimages/serde",
     "sdecode-core/serde"
 ]
 indexmap = ["sdecode-solidity/indexmap"]

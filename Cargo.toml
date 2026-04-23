@@ -4,7 +4,6 @@ edition = "2024"
 rust-version = "1.91"
 repository = "https://github.com/makcandrov/sdecode"
 homepage = "https://github.com/makcandrov/sdecode"
-description = "Decode EVM storage."
 license = "MIT OR Apache-2.0"
 keywords = ["evm", "storage", "decode", "layout"]
 
@@ -23,8 +22,7 @@ sdecode-cli = { path = "bin/cli", version = "0.1" }
 sdecode = { path = "crates/sdecode", version = "0.1" }
 sdecode-core = { path = "crates/sdecode-core", version = "0.1" }
 sdecode-inspector = { path = "crates/sdecode-inspector", version = "0.1" }
-sdecode-preimages = { path = "crates/sdecode-preimages", version = "0.1" }
-sdecode-preimages-interface = { path = "crates/sdecode-preimages-interface", version = "0.1" }
+sdecode-preimages-caches = { path = "crates/sdecode-preimages-caches", version = "0.1" }
 sdecode-solidity = { path = "crates/sdecode-solidity", version = "0.1" }
 sdecode-solidity-macro = { path = "crates/sdecode-solidity-macro", version = "0.1" }
 sdecode-test-utils = { path = "crates/sdecode-test-utils", version = "0.1" }
@@ -32,6 +30,8 @@ sdecode-test-utils = { path = "crates/sdecode-test-utils", version = "0.1" }
 alloy-primitives = { version = "1", default-features = false }
 alloy-sol-types = { version = "1", default-features = false }
 syn-solidity = "1"
+
+alloy-preimages = { git = "https://github.com/makcandrov/alloy-preimages" }
 
 revm = "38"
 revm-bytecode = { version = "10", default-features = false }

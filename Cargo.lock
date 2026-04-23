@@ -61,13 +61,14 @@ dependencies = [
 
 [[package]]
 name = "alloy-eip7928"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8222b1d88f9a6d03be84b0f5e76bb60cd83991b43ad8ab6477f0e4a7809b98d"
+checksum = "407510740da514b694fecb44d8b3cebdc60d448f70cc5d24743e8ba273448a6e"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
  "borsh",
+ "once_cell",
  "serde",
 ]
 
@@ -92,6 +93,17 @@ dependencies = [
  "serde",
  "serde_with",
  "sha2",
+]
+
+[[package]]
+name = "alloy-preimages"
+version = "0.1.0"
+source = "git+https://github.com/makcandrov/alloy-preimages#27447b68a0509951ca1dd4f60216c2360411cb6f"
+dependencies = [
+ "alloy-primitives",
+ "auto_impl",
+ "quick-impl",
+ "serde",
 ]
 
 [[package]]
@@ -2231,9 +2243,9 @@ dependencies = [
 
 [[package]]
 name = "ruint"
-version = "1.17.2"
+version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c141e807189ad38a07276942c6623032d3753c8859c146104ac2e4d68865945a"
+checksum = "0298da754d1395046b0afdc2f20ee76d29a8ae310cd30ffa84ed42acba9cb12a"
 dependencies = [
  "alloy-rlp",
  "ark-ff 0.3.0",
@@ -2355,10 +2367,10 @@ dependencies = [
 name = "sdecode"
 version = "0.1.0"
 dependencies = [
+ "alloy-preimages",
  "alloy-primitives",
  "hashbrown 0.17.0",
  "sdecode-core",
- "sdecode-preimages",
  "sdecode-solidity",
  "sdecode-solidity-macro",
  "sdecode-test-utils",
@@ -2377,11 +2389,12 @@ dependencies = [
 name = "sdecode-core"
 version = "0.1.0"
 dependencies = [
+ "alloy-preimages",
  "alloy-primitives",
  "auto_impl",
  "overf",
  "quick-impl",
- "sdecode-preimages",
+ "sdecode-preimages-caches",
  "serde",
  "thiserror",
 ]
@@ -2390,6 +2403,7 @@ dependencies = [
 name = "sdecode-inspector"
 version = "0.1.0"
 dependencies = [
+ "alloy-preimages",
  "alloy-primitives",
  "overf",
  "quick-impl",
@@ -2397,28 +2411,16 @@ dependencies = [
  "revm-bytecode",
  "revm-inspector",
  "revm-interpreter",
- "sdecode-preimages",
 ]
 
 [[package]]
-name = "sdecode-preimages"
+name = "sdecode-preimages-caches"
 version = "0.1.0"
 dependencies = [
+ "alloy-preimages",
  "alloy-primitives",
  "hashbrown 0.17.0",
  "overf",
- "quick-impl",
- "sdecode-preimages-interface",
- "serde",
-]
-
-[[package]]
-name = "sdecode-preimages-interface"
-version = "0.1.0"
-dependencies = [
- "alloy-primitives",
- "auto_impl",
- "quick-impl",
  "serde",
 ]
 
@@ -2426,6 +2428,7 @@ dependencies = [
 name = "sdecode-solidity"
 version = "0.1.0"
 dependencies = [
+ "alloy-preimages",
  "alloy-primitives",
  "alloy-sol-types",
  "array-init",
@@ -2435,7 +2438,6 @@ dependencies = [
  "paste",
  "quick-impl",
  "sdecode-core",
- "sdecode-preimages-interface",
  "sdecode-solidity-macro",
  "thiserror",
 ]
@@ -2456,6 +2458,7 @@ dependencies = [
 name = "sdecode-test-utils"
 version = "0.1.0"
 dependencies = [
+ "alloy-preimages",
  "alloy-primitives",
  "sdecode",
  "serde",
@@ -2608,9 +2611,9 @@ dependencies = [
 
 [[package]]
 name = "sha3"
-version = "0.10.8"
+version = "0.10.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
+checksum = "77fd7028345d415a4034cf8777cd4f8ab1851274233b45f84e3d955502d93874"
 dependencies = [
  "digest 0.10.7",
  "keccak",
@@ -2862,9 +2865,9 @@ dependencies = [
 
 [[package]]
 name = "typenum"
-version = "1.19.0"
+version = "1.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
+checksum = "40ce102ab67701b8526c123c1bab5cbe42d7040ccfd0f64af1a385808d2f43de"
 
 [[package]]
 name = "ucd-trie"
@@ -3102,9 +3105,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09dac053f1cd375980747450bfc7250c264eaae0583872e845c0c7cd578872b5"
+checksum = "2ee1708bef14716a11bae175f579062d4554d95be2c6829f518df847b7b3fdd0"
 dependencies = [
  "memchr",
 ]

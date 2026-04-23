@@ -10,7 +10,7 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
-sdecode-preimages.workspace = true
+alloy-preimages.workspace = true
 
 alloy-primitives.workspace = true
 
