@@ -15,8 +15,8 @@ all-features = true
 [dependencies]
 sdecode-preimages-caches.workspace = true
 
-alloy-primitives.workspace = true
 alloy-preimages.workspace = true
+alloy-primitives.workspace = true
 
 auto_impl.workspace = true
 serde = { workspace = true, optional = true }

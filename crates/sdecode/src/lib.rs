@@ -1,9 +1,6 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 #![doc = include_str!("../../../README.md")]
 
-pub use alloy_preimages as preimages;
-pub use sdecode_core as core;
-
 pub mod solidity {
     pub use sdecode_solidity::{
         SolLayoutError, SolMappingKeyType, SolMappingKeyValue, SolStorageType, SolStorageValue,
@@ -11,12 +8,18 @@ pub mod solidity {
     };
 
     #[doc(inline)]
-    pub use super::sol_storage;
+    pub use super::{sol_storage, sol_type};
 }
 
-pub use core::{SdecodeMutResult, SdecodeResult, StorageDecode, StorageEntries, StorageError};
+pub use sdecode_core::{
+    self as core, SdecodeMutResult, SdecodeResult, StorageDecode, StorageEntries, StorageError,
+};
 
-pub use preimages::{Image, Preimage, PreimageEntry, PreimagesProvider, PreimagesProviderMut};
+pub use alloy_preimages::{
+    self as preimages, Image, Preimage, PreimageEntry, PreimageEntryRef, PreimagesProvider,
+    PreimagesProviderMut, PreimagesWriter, PreimagesWriterMut, WrapPreimagesProvider,
+    WrapPreimagesWriter,
+};
 
 #[doc(hidden)]
 #[macro_export]
@@ -29,6 +32,7 @@ macro_rules! sol_storage {
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! sol_type {
     ($($t:tt)*) => {

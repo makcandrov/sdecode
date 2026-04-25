@@ -14,9 +14,9 @@ all-features = true
 
 [dependencies]
 sdecode-core.workspace = true
-alloy-preimages.workspace = true
 sdecode-solidity-macro.workspace = true
 
+alloy-preimages.workspace = true
 alloy-primitives.workspace = true
 alloy-sol-types.workspace = true
 

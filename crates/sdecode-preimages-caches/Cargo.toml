@@ -5,7 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 repository.workspace = true
 homepage.workspace = true
-documentation = "https://docs.rs/sdecode-preimages"
+documentation = "https://docs.rs/sdecode-preimages-caches"
 description = "Keccak256 preimages."
 license.workspace = true
 keywords.workspace = true
@@ -15,7 +15,6 @@ all-features = true
 
 [dependencies]
 alloy-preimages.workspace = true
-
 alloy-primitives.workspace = true
 
 serde = { workspace = true, optional = true }
