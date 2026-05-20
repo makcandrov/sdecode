@@ -33,10 +33,10 @@ syn-solidity = "1"
 
 alloy-preimages = { git = "https://github.com/makcandrov/alloy-preimages" }
 
-revm = "39"
+revm = "40"
 revm-bytecode = { version = "11", default-features = false }
-revm-inspector = { version = "20", default-features = false }
-revm-interpreter = { version = "36", default-features = false }
+revm-inspector = { version = "21", default-features = false }
+revm-interpreter = { version = "37", default-features = false }
 
 hashbrown = "0.17"
 indexmap = "2"
