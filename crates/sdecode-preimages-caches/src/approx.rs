@@ -1,9 +1,10 @@
+use std::collections::HashMap;
+
 use alloy_preimages::{
     Image, PreimageEntry, PreimagesProviderMut,
     providers::{CachedProvider, PreimagesCache, PreimagesCacheInit},
 };
-use alloy_primitives::{B256, FixedBytes};
-use hashbrown::HashMap;
+use alloy_primitives::{B256, FixedBytes, map::FbBuildHasher};
 
 use crate::utils::B256_MAX;
 
@@ -59,7 +60,7 @@ pub type ApproxCachedProvider<P, const N: usize = APPROX_CACHE_DEFAULT_PREFIX_LE
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct ApproxCache<const N: usize = APPROX_CACHE_DEFAULT_PREFIX_LEN> {
     /// Maps the first `N` bytes of a preimage's image to the full entry.
-    cache: HashMap<FixedBytes<N>, PreimageEntry>,
+    cache: HashMap<FixedBytes<N>, PreimageEntry, FbBuildHasher<N>>,
     /// The smallest known image in the provider, used to short-circuit queries below it.
     min: B256,
     /// The largest known image in the provider, used to short-circuit queries above it.
@@ -77,7 +78,7 @@ impl<const N: usize> ApproxCache<N> {
             .map(|entry| entry.image())
             .unwrap_or(B256::ZERO);
         Ok(Self {
-            cache: HashMap::new(),
+            cache: HashMap::default(),
             min,
             max,
         })
