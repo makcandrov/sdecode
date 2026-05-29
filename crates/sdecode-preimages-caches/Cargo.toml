@@ -15,7 +15,7 @@ all-features = true
 
 [dependencies]
 alloy-preimages.workspace = true
-alloy-primitives.workspace = true
+alloy-primitives = { workspace = true, features = ["map"] }
 
 serde = { workspace = true, optional = true }
 
