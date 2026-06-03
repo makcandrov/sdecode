@@ -14,8 +14,8 @@ pub struct SdecodeTestContract {
 }
 
 impl SdecodeTestContract {
-    pub fn decode<T: StorageDecode>(self) -> SdecodeResult<T, InMemoryPreimages> {
-        T::sdecode(self.preimages, self.storage)
+    pub fn decode<T: StorageDecode>(&self) -> SdecodeResult<T, InMemoryPreimages> {
+        T::sdecode(&self.preimages, &self.storage)
     }
 }
 
