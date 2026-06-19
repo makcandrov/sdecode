@@ -54,47 +54,43 @@ impl StorageItem {
     pub fn decode_mut<P: PreimagesProviderMut>(
         provider: &mut P,
         side: MappingKeySide,
-        slot: B256,
+        mut slot: B256,
         value: B256,
     ) -> Result<Self, P::Error> {
-        Self::decode_inner(provider, side, slot, HashLink::Leaf { value })
-    }
+        let mut child_link = HashLink::Leaf { value };
 
-    fn decode_inner<P: PreimagesProviderMut>(
-        provider: &mut P,
-        side: MappingKeySide,
-        slot: B256,
-        child_link: HashLink,
-    ) -> Result<Self, P::Error> {
-        let Some(decoded) = DecodedStorageSlot::decode_mut(provider, slot)? else {
-            let item = Self {
-                anchor: slot,
-                kind: AnchorKind::UnknownPreimage { link: child_link },
+        loop {
+            let Some(decoded) = DecodedStorageSlot::decode_mut(provider, slot)? else {
+                let item = Self {
+                    anchor: slot,
+                    kind: AnchorKind::UnknownPreimage { link: child_link },
+                };
+                return Ok(item);
             };
-            return Ok(item);
-        };
 
-        if let Some(mapping_entry_location) = side.split(decoded.preimage()) {
-            let child = HashLink::Inner {
-                key: mapping_entry_location.entry_key,
-                remaining_chain: Box::new(HashChain {
-                    offset: decoded.offset(),
-                    link: child_link,
-                }),
-            };
-            Self::decode_inner(provider, side, mapping_entry_location.mapping_slot, child)
-        } else {
-            let item = Self {
-                anchor: decoded.slot(),
-                kind: AnchorKind::UndecodablePreimage {
-                    preimage: decoded.preimage().clone(),
-                    chain: HashChain {
+            if let Some(mapping_entry_location) = side.split(decoded.preimage()) {
+                let child = HashLink::Inner {
+                    key: mapping_entry_location.entry_key,
+                    remaining_chain: Box::new(HashChain {
                         offset: decoded.offset(),
                         link: child_link,
+                    }),
+                };
+                child_link = child;
+                slot = mapping_entry_location.mapping_slot;
+            } else {
+                let item = Self {
+                    anchor: decoded.slot(),
+                    kind: AnchorKind::UndecodablePreimage {
+                        preimage: decoded.preimage().clone(),
+                        chain: HashChain {
+                            offset: decoded.offset(),
+                            link: child_link,
+                        },
                     },
-                },
-            };
-            Ok(item)
+                };
+                return Ok(item);
+            }
         }
     }
 }
