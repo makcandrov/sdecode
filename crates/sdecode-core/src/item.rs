@@ -2,7 +2,7 @@ use alloy_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesProv
 use alloy_primitives::{B256, Bytes};
 use quick_impl::quick_impl_all;
 
-use crate::{DecodedStorageSlot, MappingKeySide};
+use crate::{MappingKeySide, ResolvedSlot};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
@@ -60,7 +60,7 @@ impl StorageItem {
         let mut child_link = HashLink::Leaf { value };
 
         loop {
-            let Some(decoded) = DecodedStorageSlot::decode_mut(provider, slot)? else {
+            let Some(resolved_slot) = ResolvedSlot::decode_mut(provider, slot)? else {
                 let item = Self {
                     anchor: slot,
                     kind: AnchorKind::UnknownPreimage { link: child_link },
@@ -68,11 +68,13 @@ impl StorageItem {
                 return Ok(item);
             };
 
-            if let Some(mapping_entry_location) = side.split(decoded.preimage()) {
+            let (anchor, offset, preimage) = resolved_slot.into_parts();
+
+            if let Some(mapping_entry_location) = side.split(&preimage) {
                 let child = HashLink::Inner {
                     key: mapping_entry_location.entry_key,
                     remaining_chain: Box::new(HashChain {
-                        offset: decoded.offset(),
+                        offset,
                         link: child_link,
                     }),
                 };
@@ -80,11 +82,11 @@ impl StorageItem {
                 slot = mapping_entry_location.mapping_slot;
             } else {
                 let item = Self {
-                    anchor: decoded.slot(),
+                    anchor,
                     kind: AnchorKind::UndecodablePreimage {
-                        preimage: decoded.preimage().clone(),
+                        preimage,
                         chain: HashChain {
-                            offset: decoded.offset(),
+                            offset,
                             link: child_link,
                         },
                     },
