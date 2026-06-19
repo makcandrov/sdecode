@@ -2,7 +2,7 @@ use alloy_preimages::{PreimagesProvider, PreimagesProviderMut, WrapPreimagesProv
 use alloy_primitives::{B256, Bytes};
 use quick_impl::quick_impl_all;
 
-use crate::{MappingKeySide, ResolvedSlot};
+use crate::{MappingEntryLocation, MappingKeySide, ResolvedSlot};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
@@ -70,28 +70,34 @@ impl StorageItem {
 
             let (anchor, offset, preimage) = resolved_slot.into_parts();
 
-            if let Some(mapping_entry_location) = side.split(&preimage) {
-                let child = HashLink::Inner {
-                    key: mapping_entry_location.entry_key,
-                    remaining_chain: Box::new(HashChain {
-                        offset,
-                        link: child_link,
-                    }),
-                };
-                child_link = child;
-                slot = mapping_entry_location.mapping_slot;
-            } else {
-                let item = Self {
-                    anchor,
-                    kind: AnchorKind::UndecodablePreimage {
-                        preimage,
-                        chain: HashChain {
+            match MappingEntryLocation::try_from_preimage(side, preimage) {
+                Ok(MappingEntryLocation {
+                    entry_key,
+                    mapping_slot,
+                }) => {
+                    let child = HashLink::Inner {
+                        key: entry_key,
+                        remaining_chain: Box::new(HashChain {
                             offset,
                             link: child_link,
+                        }),
+                    };
+                    child_link = child;
+                    slot = mapping_slot;
+                }
+                Err(preimage) => {
+                    let item = Self {
+                        anchor,
+                        kind: AnchorKind::UndecodablePreimage {
+                            preimage,
+                            chain: HashChain {
+                                offset,
+                                link: child_link,
+                            },
                         },
-                    },
-                };
-                return Ok(item);
+                    };
+                    return Ok(item);
+                }
             }
         }
     }

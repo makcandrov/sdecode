@@ -27,22 +27,32 @@ impl MappingKeySide {
         if right { Self::Right } else { Self::Left }
     }
 
-    pub fn split(&self, preimage: impl AsRef<[u8]>) -> Option<MappingEntryLocation> {
-        let preimage = preimage.as_ref();
-
-        let key_size = preimage.len().checked_sub(32)?;
-
-        let (key, slot) = match self {
-            Self::Left => (&preimage[..key_size], &preimage[key_size..]),
-            Self::Right => (&preimage[32..preimage.len()], &preimage[..32]),
+    /// Splits an owned `preimage` into its `(entry_key, mapping_slot)` parts.
+    pub fn split(&self, preimage: Bytes) -> Result<MappingEntryLocation, Bytes> {
+        let Some(key_size) = preimage.len().checked_sub(32) else {
+            return Err(preimage);
         };
 
-        debug_assert_eq!(slot.len(), 32);
-        debug_assert_eq!(key.len(), key_size);
+        let mut inner = preimage.0;
 
-        Some(MappingEntryLocation {
-            entry_key: Bytes::copy_from_slice(key),
-            mapping_slot: B256::from_slice(slot),
+        let (entry_key, mapping_slot) = match self {
+            // `[key][slot]`: keep `key`, split off the trailing slot.
+            Self::Left => {
+                let slot = inner.split_off(key_size);
+                (Bytes(inner), B256::from_slice(&slot))
+            }
+            // `[slot][key]`: split off the trailing key, keep the leading slot.
+            Self::Right => {
+                let key = inner.split_off(32);
+                (Bytes(key), B256::from_slice(&inner))
+            }
+        };
+
+        debug_assert_eq!(entry_key.len(), key_size);
+
+        Ok(MappingEntryLocation {
+            entry_key,
+            mapping_slot,
         })
     }
 }
@@ -60,7 +70,7 @@ impl From<MappingKeySide> for bool {
 }
 
 impl MappingEntryLocation {
-    pub fn from_preimage(side: MappingKeySide, preimage: impl AsRef<[u8]>) -> Option<Self> {
+    pub fn try_from_preimage(side: MappingKeySide, preimage: Bytes) -> Result<Self, Bytes> {
         side.split(preimage)
     }
 
@@ -85,7 +95,7 @@ mod tests {
             MappingKeySide::Left.split(bytes!(
                 "0x52760d045fcb6cb07a410156f1ec0d909a3aefe6ab66a2dd898ca8e596b27a1ea0b8"
             )),
-            Some(MappingEntryLocation {
+            Ok(MappingEntryLocation {
                 mapping_slot: b256!(
                     "0x0d045fcb6cb07a410156f1ec0d909a3aefe6ab66a2dd898ca8e596b27a1ea0b8"
                 ),
@@ -97,7 +107,7 @@ mod tests {
             MappingKeySide::Right.split(bytes!(
                 "0x52760d045fcb6cb07a410156f1ec0d909a3aefe6ab66a2dd898ca8e596b27a1ea0b8"
             )),
-            Some(MappingEntryLocation {
+            Ok(MappingEntryLocation {
                 mapping_slot: b256!(
                     "0x52760d045fcb6cb07a410156f1ec0d909a3aefe6ab66a2dd898ca8e596b27a1e"
                 ),
@@ -105,6 +115,6 @@ mod tests {
             }),
         );
 
-        assert!(MappingKeySide::Right.split(bytes!("0x5276")).is_none());
+        assert!(MappingKeySide::Right.split(bytes!("0x5276")).is_err());
     }
 }
