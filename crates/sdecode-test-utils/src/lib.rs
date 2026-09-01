@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use alloy_preimages::providers::InMemoryPreimages;
+use alloy_preimages::stores::InMemoryPreimages;
 use alloy_primitives::{Address, BlockNumber, ChainId};
 use sdecode::{SdecodeResult, StorageDecode, StorageEntries};
 

@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, convert::Infallible};
 
 use alloy_preimages::{
     Image, PreimageEntry, PreimagesProviderMut,
-    providers::{CachedProvider, PreimagesCache, PreimagesCacheInit},
+    adapters::{CachedProvider, PreimagesCache, PreimagesCacheInit},
 };
 use alloy_primitives::{B256, U256};
 use overf::checked;
@@ -220,8 +220,7 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for StorageCache {
 mod tests {
 
     use alloy_preimages::{
-        Preimage, PreimagesProvider,
-        providers::{InMemoryPreimages, PreimagesCounter},
+        Preimage, PreimagesProvider, adapters::CountingProvider, stores::InMemoryPreimages,
     };
 
     use super::*;
@@ -234,7 +233,7 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let db_counter = PreimagesCounter::new(&db);
+        let db_counter = CountingProvider::new(&db);
         let mut cache =
             StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
@@ -255,7 +254,7 @@ mod tests {
     #[test]
     fn test_storage_cache_empty_provider() {
         let db = InMemoryPreimages::new();
-        let db_counter = PreimagesCounter::new(&db);
+        let db_counter = CountingProvider::new(&db);
         let mut cache =
             StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
@@ -273,7 +272,7 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let db_counter = PreimagesCounter::new(&db);
+        let db_counter = CountingProvider::new(&db);
         let mut cache =
             StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 
@@ -296,7 +295,7 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let db_counter = PreimagesCounter::new(&db);
+        let db_counter = CountingProvider::new(&db);
         let mut cache =
             StorageCachedProvider::new_mut(db_counter, STORAGE_CACHE_DEFAULT_MAX_DELTA).unwrap();
 

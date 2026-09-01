@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use alloy_preimages::{
     Image, PreimageEntry, PreimagesProviderMut,
-    providers::{CachedProvider, PreimagesCache, PreimagesCacheInit},
+    adapters::{CachedProvider, PreimagesCache, PreimagesCacheInit},
 };
 use alloy_primitives::U256;
 
@@ -175,8 +175,7 @@ impl<P: PreimagesProviderMut> PreimagesCache<P> for GeneralCache {
 #[cfg(test)]
 mod tests {
     use alloy_preimages::{
-        Preimage, PreimagesProvider,
-        providers::{InMemoryPreimages, PreimagesCounter},
+        Preimage, PreimagesProvider, adapters::CountingProvider, stores::InMemoryPreimages,
     };
     use alloy_primitives::B256;
 
@@ -190,7 +189,7 @@ mod tests {
             db.insert(Preimage::copy_from_slice(&Image::random().0));
         }
 
-        let mut db_counter = PreimagesCounter::new(&db);
+        let mut db_counter = CountingProvider::new(&db);
         let mut cache = GeneralCache::new_init(&mut db_counter, ()).unwrap();
 
         const N: usize = 50;
@@ -217,7 +216,7 @@ mod tests {
     #[test]
     fn test_general_cache_empty_provider() {
         let db = InMemoryPreimages::new();
-        let mut db_counter = PreimagesCounter::new(&db);
+        let mut db_counter = CountingProvider::new(&db);
         let mut cache = GeneralCache::new_init(&mut db_counter, ()).unwrap();
 
         for _ in 0..10 {

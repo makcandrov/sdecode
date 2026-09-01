@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, error::Error};
 
-use alloy_preimages::{PreimagesProvider, PreimagesProviderMut, providers::CachedProvider};
+use alloy_preimages::{PreimagesProvider, PreimagesProviderMut, adapters::CachedProvider};
 use alloy_primitives::B256;
 use quick_impl::quick_impl_all;
 use sdecode_preimages_caches::StorageCache;

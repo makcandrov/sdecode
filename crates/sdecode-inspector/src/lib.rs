@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use alloy_preimages::{Preimage, providers::InMemoryPreimages};
+use alloy_preimages::{Preimage, stores::InMemoryPreimages};
 use alloy_primitives::{
     Address, B256, Bytes, U256,
     map::{B256Map, Entry},

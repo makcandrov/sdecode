@@ -105,7 +105,7 @@ impl StorageItem {
 
 #[cfg(test)]
 mod tests {
-    use alloy_preimages::providers::InMemoryPreimages;
+    use alloy_preimages::stores::InMemoryPreimages;
     use alloy_primitives::{b256, bytes};
 
     use super::*;
