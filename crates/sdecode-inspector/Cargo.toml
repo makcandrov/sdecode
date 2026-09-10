@@ -21,4 +21,5 @@ overf.workspace = true
 quick-impl.workspace = true
 
 [dev-dependencies]
+evm-asm.workspace = true
 revm.workspace = true

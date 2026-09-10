@@ -1,7 +1,7 @@
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.91"
+rust-version = "1.95"
 repository = "https://github.com/makcandrov/sdecode"
 homepage = "https://github.com/makcandrov/sdecode"
 license = "MIT OR Apache-2.0"
@@ -37,6 +37,8 @@ revm = "43"
 revm-bytecode = { version = "43", default-features = false }
 revm-inspector = { version = "43", default-features = false }
 revm-interpreter = { version = "43", default-features = false }
+
+evm-asm = { git = "https://github.com/makcandrov/evm-asm" }
 
 hashbrown = "0.17"
 indexmap = "2"
