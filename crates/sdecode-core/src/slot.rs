@@ -2,6 +2,7 @@ use alloy_preimages::{
     PreimageEntry, PreimageEntryRef, PreimagesProvider, PreimagesProviderMut, WrapPreimagesProvider,
 };
 use alloy_primitives::{B256, Bytes, U256};
+use overf::checked;
 use quick_impl::quick_impl;
 
 use crate::utils::b256_to_u256;
@@ -51,9 +52,8 @@ impl ResolvedSlot {
 
         let (anchor, preimage) = entry.into_parts();
 
-        let offset = b256_to_u256(slot)
-            .checked_sub(b256_to_u256(anchor))
-            .expect("should be lower");
+        // Must be lower
+        let offset = checked! { b256_to_u256(slot) - b256_to_u256(anchor) };
 
         if let Some(offset) = as_offset(offset) {
             Ok(Some(Self {

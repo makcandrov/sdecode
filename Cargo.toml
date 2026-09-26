@@ -48,7 +48,6 @@ auto_impl = "1"
 overf = "0.1"
 quick-impl = "0.2"
 thiserror = "2"
-paste = "1"
 
 serde = "1"
 serde_json = "1"

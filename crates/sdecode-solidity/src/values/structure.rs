@@ -1,4 +1,3 @@
-use paste::paste;
 use quick_impl::quick_impl;
 use sdecode_core::StorageReader;
 use std::{hash::Hash, marker::PhantomData};
@@ -21,27 +20,33 @@ impl<SolStructure, Tuple, SolTuple> SolStructureHelper<SolStructure, Tuple, SolT
 }
 
 macro_rules! impl_sol_storage_type_structure {
-    ($( $ty: ident),*) => {
-        paste! {
-            impl<SolStructure, $($ty, [<Sol $ty>],)*> SolStorageValue<SolStructure> for SolStructureHelper<SolStructure, ($($ty,)*), ($([<Sol $ty>],)*)>
+    ($( $ty:ident $sol:ident ),*) => {
+        impl<SolStructure, $($ty, $sol,)*> SolStorageValue<SolStructure> for SolStructureHelper<SolStructure, ($($ty,)*), ($($sol,)*)>
+        where
+            SolStructure: SolStorageType,
+            $(
+                $ty: SolStorageValue<$sol>,
+                $sol: SolStorageType,
+            )*
+        {
+            fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
             where
-                SolStructure: SolStorageType,
-                $(
-                    $ty: SolStorageValue<[<Sol $ty>]>,
-                    [<Sol $ty>]: SolStorageType,
-                )*
+                Reader: StorageReader
             {
-                fn decode_storage<Reader>(storage_reader: &mut Reader) -> Result<Self, SolLayoutError>
-                where
-                    Reader: StorageReader
-                {
-                    Ok(Self::new(($(
-                        $ty::decode_storage(storage_reader)?,
-                    )*)))
-                }
+                Ok(Self::new(($(
+                    $ty::decode_storage(storage_reader)?,
+                )*)))
             }
         }
-    }
+    };
+}
+
+macro_rules! impl_sol_storage_type_structures {
+    ([$( $done_ty:ident $done_sol:ident )*]) => {};
+    ([$( $done_ty:ident $done_sol:ident )*] $ty:ident $sol:ident $($rest:tt)*) => {
+        impl_sol_storage_type_structure!($( $done_ty $done_sol, )* $ty $sol);
+        impl_sol_storage_type_structures!([$( $done_ty $done_sol )* $ty $sol] $($rest)*);
+    };
 }
 
 impl<SolStructure, A, SolA> SolStorageValue<SolStructure>
@@ -59,41 +64,32 @@ where
     }
 }
 
-impl_sol_storage_type_structure!(A);
-impl_sol_storage_type_structure!(A, B);
-impl_sol_storage_type_structure!(A, B, C);
-impl_sol_storage_type_structure!(A, B, C, D);
-impl_sol_storage_type_structure!(A, B, C, D, E);
-impl_sol_storage_type_structure!(A, B, C, D, E, F);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S);
-impl_sol_storage_type_structure!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
-impl_sol_storage_type_structure!(
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U
-);
-impl_sol_storage_type_structure!(
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V
-);
-impl_sol_storage_type_structure!(
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W
-);
-impl_sol_storage_type_structure!(
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X
-);
-impl_sol_storage_type_structure!(
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y
-);
-impl_sol_storage_type_structure!(
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
+impl_sol_storage_type_structures!(
+    []
+    A SolA
+    B SolB
+    C SolC
+    D SolD
+    E SolE
+    F SolF
+    G SolG
+    H SolH
+    I SolI
+    J SolJ
+    K SolK
+    L SolL
+    M SolM
+    N SolN
+    O SolO
+    P SolP
+    Q SolQ
+    R SolR
+    S SolS
+    T SolT
+    U SolU
+    V SolV
+    W SolW
+    X SolX
+    Y SolY
+    Z SolZ
 );
