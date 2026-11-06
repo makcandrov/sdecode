@@ -13,13 +13,11 @@ keywords.workspace = true
 alloy-preimages.workspace = true
 alloy-primitives.workspace = true
 
-revm-inspector.workspace = true
-revm-interpreter.workspace = true
-revm-bytecode.workspace = true
+evm2.workspace = true
 
-overf.workspace = true
 quick-impl.workspace = true
 
 [dev-dependencies]
+alloy-consensus.workspace = true
 evm-asm.workspace = true
-revm.workspace = true
+evm2 = { workspace = true, features = ["std"] }

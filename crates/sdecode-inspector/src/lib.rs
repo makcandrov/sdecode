@@ -7,14 +7,11 @@ use alloy_primitives::{
     Address, B256, Bytes, U256,
     map::{B256Map, Entry},
 };
-use overf::checked;
-use quick_impl::{quick_impl, quick_impl_all};
-use revm_bytecode::opcode::KECCAK256;
-use revm_inspector::Inspector;
-use revm_interpreter::{
-    InstructionResult, Interpreter, InterpreterTypes, Stack,
-    interpreter_types::{InputsTr, Jumps, LoopControl, MemoryTr, StackTr},
+use evm2::{
+    EvmTypesHost, Inspector, InspectorConfig, OpcodeSet,
+    interpreter::{Interpreter, Message, MessageResult, op::KECCAK256},
 };
+use quick_impl::{quick_impl, quick_impl_all};
 
 /// An EVM inspector that captures Keccak256 preimages during transaction execution.
 ///
@@ -94,61 +91,67 @@ impl InspectorTargets {
     }
 }
 
-impl<CTX, INTR> Inspector<CTX, INTR> for PreimagesInspector
-where
-    INTR: InterpreterTypes,
-    INTR::Stack: PeekableStack,
-{
-    fn step(&mut self, interp: &mut Interpreter<INTR>, _: &mut CTX) {
-        if interp.bytecode.opcode() != KECCAK256 {
-            self.unconfirmed = None;
-            return;
-        }
-
-        if self
-            .targets
-            .should_not_inspect(&interp.input.target_address())
-        {
-            self.unconfirmed = None;
-            return;
-        }
-
-        let stack = &interp.stack;
-
-        let offset = stack.peek(0).ok();
-        let size = stack.peek(1).ok();
-
-        self.unconfirmed = offset.zip(size);
+impl<T: EvmTypesHost> Inspector<T> for PreimagesInspector {
+    fn inspector_config(&self) -> InspectorConfig {
+        InspectorConfig::new().with_steps(OpcodeSet::from_iter([KECCAK256]))
     }
 
-    fn step_end(&mut self, interp: &mut Interpreter<INTR>, _: &mut CTX) {
+    fn step(&mut self, interp: &mut Interpreter<'_, '_, T>) {
+        self.unconfirmed = None;
+
+        if interp.opcode() != KECCAK256
+            || self
+                .targets
+                .should_not_inspect(&interp.message().destination)
+        {
+            return;
+        }
+
+        self.unconfirmed = interp.stack().peekn().map(|[offset, size]| (offset, size));
+    }
+
+    fn step_end(&mut self, interp: &mut Interpreter<'_, '_, T>) {
         let Some((offset, size)) = self.unconfirmed.take() else {
             return;
         };
 
-        if interp
-            .bytecode
-            .instruction_result()
-            .is_some_and(|instruction_result| !instruction_result.is_ok())
-        {
+        if interp.result().is_err() {
             return;
         }
 
-        let stack = &interp.stack;
-        let image = B256::from(stack.peek(0).unwrap());
+        let Some(image) = interp.stack().peek(0) else {
+            return;
+        };
 
-        if let Entry::Vacant(e) = self.preimages.entry(image) {
+        if let Entry::Vacant(e) = self.preimages.entry(B256::from(image)) {
             let preimage = if size.is_zero() {
                 Bytes::new()
             } else {
-                let start = offset.to::<usize>();
-                let end = checked! { start + size.to::<usize>() };
-                let preimage_slice = interp.memory.slice(start..end);
-                Bytes::copy_from_slice(preimage_slice.as_ref())
+                Bytes::copy_from_slice(interp.memory().slice(offset.to(), size.to()))
             };
 
             e.insert(preimage);
         }
+    }
+
+    // `step_end` is skipped when another inspector halts the frame in `step`, so the pending
+    // KECCAK256 must not leak into the parent frame's next `step_end`.
+    fn call_end(
+        &mut self,
+        _: &mut Interpreter<'_, '_, T>,
+        _: &Message<T>,
+        _: &mut MessageResult<T>,
+    ) {
+        self.unconfirmed = None;
+    }
+
+    fn create_end(
+        &mut self,
+        _: &mut Interpreter<'_, '_, T>,
+        _: &Message<T>,
+        _: &mut MessageResult<T>,
+    ) {
+        self.unconfirmed = None;
     }
 }
 
@@ -195,18 +198,5 @@ impl PreimagesInspector {
     #[must_use]
     pub fn into_provider(self) -> InMemoryPreimages {
         InMemoryPreimages::from_iter_unchecked(self.into_preimages())
-    }
-}
-
-/// Trait for EVM stacks that support peeking at values without popping them.
-pub trait PeekableStack: StackTr {
-    /// Returns the value at `no_from_top` positions from the top of the stack.
-    fn peek(&self, no_from_top: usize) -> Result<U256, InstructionResult>;
-}
-
-impl PeekableStack for Stack {
-    #[inline]
-    fn peek(&self, no_from_top: usize) -> Result<U256, InstructionResult> {
-        self.peek(no_from_top)
     }
 }
