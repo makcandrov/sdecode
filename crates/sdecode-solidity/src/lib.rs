@@ -1,5 +1,3 @@
-#![cfg_attr(not(test), warn(unused_crate_dependencies))]
-
 pub mod sol_types {
     pub use super::types::{
         Address, Array, Bool, ByteCount, Bytes, FixedArray, FixedBytes, Function, Int, IntBitCount,

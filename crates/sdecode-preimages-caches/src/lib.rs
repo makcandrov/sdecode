@@ -1,5 +1,3 @@
-#![cfg_attr(not(test), warn(unused_crate_dependencies))]
-
 mod approx;
 pub use approx::{APPROX_CACHE_DEFAULT_PREFIX_LEN, ApproxCache, ApproxCachedProvider};
 

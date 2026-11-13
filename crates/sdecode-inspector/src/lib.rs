@@ -1,5 +1,3 @@
-#![cfg_attr(not(test), warn(unused_crate_dependencies))]
-
 use std::collections::BTreeSet;
 
 use alloy_preimages::{Preimage, stores::InMemoryPreimages};

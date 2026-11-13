@@ -1,5 +1,3 @@
-#![cfg_attr(not(test), warn(unused_crate_dependencies))]
-
 use syn::parse_macro_input;
 use syn_solidity::{File, Type};
 

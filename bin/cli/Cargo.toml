@@ -9,4 +9,3 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
-sdecode.workspace = true

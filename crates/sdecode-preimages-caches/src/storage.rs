@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, convert::Infallible};
+use std::collections::BTreeMap;
 
 use alloy_preimages::{
     Image, PreimageEntry, PreimagesProviderMut,
@@ -102,9 +102,9 @@ impl StorageCache {
 
 impl<P: PreimagesProviderMut> PreimagesCacheInit<P> for StorageCache {
     type Params = U256;
-    type InitError = Infallible;
+    type InitError = !;
 
-    fn new_init(_provider: &mut P, max_delta: U256) -> Result<Self, Infallible> {
+    fn new_init(_provider: &mut P, max_delta: U256) -> Result<Self, !> {
         Ok(Self::new(max_delta))
     }
 }
